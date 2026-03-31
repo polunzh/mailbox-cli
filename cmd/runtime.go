@@ -76,7 +76,13 @@ func buildProvider(reg *provider.Registry, acct model.Account, credStore credent
 func newRegistry() *provider.Registry {
 	reg := provider.NewRegistry()
 	_ = reg.Register("gmail", func(a model.Account, cred string) provider.MailProvider {
-		return provider.NewGmailProvider(a, cred)
+		// Build an oauth2-aware HTTP client that auto-refreshes the token.
+		httpClient, err := refreshGmailToken(cred)
+		if err != nil {
+			// Fall back to plain token (e.g. in tests with fake token).
+			return provider.NewGmailProvider(a, cred)
+		}
+		return provider.NewGmailProviderWithHTTPClient(a, httpClient, "https://gmail.googleapis.com")
 	})
 	_ = reg.Register("qq", func(a model.Account, cred string) provider.MailProvider {
 		return provider.NewQQProvider(a, cred)

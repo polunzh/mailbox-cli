@@ -14,15 +14,27 @@ import (
 
 // GmailProvider implements MailProvider against the Gmail REST API.
 type GmailProvider struct {
-	account  model.Account
-	token    string
-	baseURL  string
-	client   *http.Client
+	account model.Account
+	token   string
+	baseURL string
+	client  *http.Client
 }
 
 // NewGmailProvider creates a GmailProvider using the real Gmail API base URL.
+// httpClient should be an oauth2-aware client that handles token refresh automatically.
+// Pass nil to use a plain client with the token string as Bearer (for tests only).
 func NewGmailProvider(account model.Account, token string) *GmailProvider {
 	return NewGmailProviderWithBaseURL(account, token, "https://gmail.googleapis.com")
+}
+
+// NewGmailProviderWithHTTPClient creates a GmailProvider with a pre-built HTTP client.
+// Use this in production to pass an oauth2-aware client.
+func NewGmailProviderWithHTTPClient(account model.Account, httpClient *http.Client, baseURL string) *GmailProvider {
+	return &GmailProvider{
+		account: account,
+		baseURL: strings.TrimRight(baseURL, "/"),
+		client:  httpClient,
+	}
 }
 
 // NewGmailProviderWithBaseURL creates a GmailProvider with a configurable base URL (for tests).
@@ -99,8 +111,10 @@ func (p *GmailProvider) SendMessage(d model.Draft) (*model.MessageLocator, error
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+p.token)
 	req.Header.Set("Content-Type", "application/json")
+	if p.token != "" {
+		req.Header.Set("Authorization", "Bearer "+p.token)
+	}
 
 	resp, err := p.client.Do(req)
 	if err != nil {
@@ -206,7 +220,11 @@ func (p *GmailProvider) get(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+p.token)
+	// Only set Authorization manually when using the plain token fallback.
+	// oauth2-aware clients inject the header automatically.
+	if p.token != "" {
+		req.Header.Set("Authorization", "Bearer "+p.token)
+	}
 	resp, err := p.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("gmail: get %s: %w", url, err)
