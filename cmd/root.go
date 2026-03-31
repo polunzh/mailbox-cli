@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/zhenqiang/mailbox-cli/tui"
 )
 
 var (
@@ -13,8 +14,11 @@ var rootCmd = &cobra.Command{
 	Use:   "mailbox",
 	Short: "A terminal email client",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Placeholder: will launch TUI in Task 15
-		return cmd.Help()
+		store, err := loadAccountStore()
+		if err != nil {
+			return err
+		}
+		return tui.Launch(store)
 	},
 }
 
