@@ -180,7 +180,7 @@ func (a *App) View() tea.View {
 		frame := spinnerFrames[a.spinnerFrame]
 		content = StyleTitle.Render(frame) + " " + StyleDim.Render("Fetching messages...") + "\n"
 	case a.state == viewDetail && a.detailView != nil:
-		content = a.detailView.RenderContent() + "\n" + helpDetail()
+		content = a.detailView.RenderWithHelp(helpDetail())
 	case a.listView != nil:
 		content = a.listView.Render(80) + "\n" + helpList(a.listView.IsUnreadFilter())
 	default:

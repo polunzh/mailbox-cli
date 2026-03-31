@@ -29,3 +29,10 @@ func (dv *DetailView) RenderContent() string {
 		d.TextBody,
 	)
 }
+
+// RenderWithHelp returns content with help bar fixed at bottom.
+func (dv *DetailView) RenderWithHelp(help string) string {
+	content := dv.RenderContent()
+	separator := StyleDim.Render("────────────────────────────────────────")
+	return content + "\n\n" + separator + "\n" + help
+}
