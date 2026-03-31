@@ -97,6 +97,11 @@ var authLoginCmd = &cobra.Command{
 			return fmt.Errorf("save account: %w", err)
 		}
 
+		// If this is the first account, set it as default automatically.
+		if existing, _ := accountStore.GetDefault(); existing.ID == "" {
+			_ = accountStore.SetDefault(acct.ID)
+		}
+
 		fmt.Fprintf(os.Stdout, "Logged in as %s (%s)\n", acct.Email, acct.Provider)
 		return nil
 	},
