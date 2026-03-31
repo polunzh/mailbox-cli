@@ -14,11 +14,15 @@ var rootCmd = &cobra.Command{
 	Use:   "mailbox",
 	Short: "A terminal email client",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		store, err := loadAccountStore()
+		accountStore, err := loadAccountStore()
 		if err != nil {
 			return err
 		}
-		return tui.Launch(store)
+		credStore, err := loadCredentialStore()
+		if err != nil {
+			return err
+		}
+		return tui.Launch(accountStore, credStore, newRegistry())
 	},
 }
 

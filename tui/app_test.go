@@ -8,7 +8,7 @@ import (
 )
 
 func TestAppNoAccounts(t *testing.T) {
-	m := tui.NewApp(nil)
+	m := tui.NewApp(nil, nil)
 	msg := m.OnboardingMessage()
 	if msg == "" {
 		t.Fatal("expected non-empty onboarding message when no accounts configured")
@@ -19,15 +19,14 @@ func TestAppNoDefaultAccount(t *testing.T) {
 	accounts := []model.Account{
 		{ID: "gmail:a@example.com", Provider: "gmail", Email: "a@example.com"},
 	}
-	m := tui.NewApp(accounts)
-	// No default → NoDefault guidance should be non-empty.
+	m := tui.NewApp(accounts, nil)
 	if m.OnboardingMessage() != "" {
 		t.Fatal("expected no onboarding message when accounts exist")
 	}
 }
 
 func TestAppInitialState(t *testing.T) {
-	m := tui.NewApp(nil)
+	m := tui.NewApp(nil, nil)
 	view := m.View()
 	if view.Content == "" {
 		t.Fatal("initial view must return non-empty content")

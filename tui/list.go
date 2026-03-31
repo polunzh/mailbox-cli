@@ -47,6 +47,11 @@ func (lv *ListView) Selected() *model.Message {
 	return &m
 }
 
+// IsUnreadFilter reports whether the unread-only filter is active.
+func (lv *ListView) IsUnreadFilter() bool {
+	return lv.unreadOnly
+}
+
 // SetUnreadFilter enables or disables the unread-only filter.
 // Resets the cursor to 0 when the filter changes.
 func (lv *ListView) SetUnreadFilter(unreadOnly bool) {
