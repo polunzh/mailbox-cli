@@ -37,6 +37,7 @@ type App struct {
 	provider     provider.MailProvider
 	listView     *ListView
 	detailView   *DetailView
+	composeView  *ComposeView
 	state        viewState
 	err          string
 	loading      bool
@@ -140,22 +141,40 @@ func (a *App) updateList(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		if a.listView != nil {
 			a.listView.SetUnreadFilter(!a.listView.IsUnreadFilter())
 		}
+	case "r":
+		// Refresh list
+		a.loading = true
+		return a, tea.Batch(
+			func() tea.Msg {
+				msgs, err := a.provider.ListMessages(model.ListOptions{Limit: 50})
+				return msgsLoaded{messages: msgs, err: err}
+			},
+			tickCmd(),
+		)
+	case "n":
+		// New compose
+		a.composeView = NewComposeView(nil)
+		a.state = viewCompose
+		return a, nil
 	case "enter":
 		if a.listView != nil {
 			if sel := a.listView.Selected(); sel != nil {
-				loc := sel.Locator
-				a.loading = true
-				return a, tea.Batch(
-					func() tea.Msg {
-						detail, err := a.provider.GetMessage(loc)
-						return detailLoaded{detail: detail, err: err}
-					},
-					tickCmd(),
-				)
+				return a.openMessage(sel.Locator)
 			}
 		}
 	}
 	return a, nil
+}
+
+func (a *App) openMessage(loc model.MessageLocator) (tea.Model, tea.Cmd) {
+	a.loading = true
+	return a, tea.Batch(
+		func() tea.Msg {
+			detail, err := a.provider.GetMessage(loc)
+			return detailLoaded{detail: detail, err: err}
+		},
+		tickCmd(),
+	)
 }
 
 func (a *App) updateDetail(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
@@ -165,6 +184,32 @@ func (a *App) updateDetail(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	case "esc", "backspace":
 		a.state = viewList
 		a.detailView = nil
+	case "j", "down":
+		// Next message
+		if a.listView != nil {
+			a.listView.MoveDown()
+			if sel := a.listView.Selected(); sel != nil {
+				return a.openMessage(sel.Locator)
+			}
+		}
+	case "k", "up":
+		// Previous message
+		if a.listView != nil {
+			a.listView.MoveUp()
+			if sel := a.listView.Selected(); sel != nil {
+				return a.openMessage(sel.Locator)
+			}
+		}
+	case "r":
+		// Reply to current message
+		if a.detailView != nil && a.detailView.detail != nil {
+			a.composeView = NewComposeView(a.detailView.detail)
+			a.state = viewCompose
+		}
+	case "n":
+		// New compose
+		a.composeView = NewComposeView(nil)
+		a.state = viewCompose
 	}
 	return a, nil
 }
@@ -192,13 +237,13 @@ func (a *App) View() tea.View {
 }
 
 func helpList(unreadOnly bool) string {
-	filter := "u: unread filter"
+	filter := "u: unread"
 	if unreadOnly {
-		filter = StyleTitle.Render("u: all mail")
+		filter = StyleTitle.Render("u: all")
 	}
-	return StyleDim.Render("j/k: navigate  enter: open  "+filter+"  q: quit") + "\n"
+	return StyleDim.Render("j/k:nav  enter:open  n:new  r:refresh  "+filter+"  q:quit") + "\n"
 }
 
 func helpDetail() string {
-	return StyleDim.Render("esc/backspace: back  q: quit") + "\n"
+	return StyleDim.Render("j/k:prev/next  r:reply  n:new  esc:back  q:quit") + "\n"
 }
