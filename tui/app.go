@@ -2,11 +2,22 @@ package tui
 
 import (
 	"fmt"
+	"time"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/zhenqiang/mailbox-cli/internal/model"
 	"github.com/zhenqiang/mailbox-cli/internal/provider"
 )
+
+var spinnerFrames = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+
+type tickMsg struct{}
+
+func tickCmd() tea.Cmd {
+	return tea.Tick(100*time.Millisecond, func(time.Time) tea.Msg {
+		return tickMsg{}
+	})
+}
 
 // msgsLoaded is sent when the initial message fetch completes.
 type msgsLoaded struct {
@@ -16,12 +27,13 @@ type msgsLoaded struct {
 
 // App is the root Bubble Tea model.
 type App struct {
-	accounts []model.Account
-	provider provider.MailProvider
-	listView *ListView
-	state    viewState
-	err      string
-	loading  bool
+	accounts     []model.Account
+	provider     provider.MailProvider
+	listView     *ListView
+	state        viewState
+	err          string
+	loading      bool
+	spinnerFrame int
 }
 
 // viewState represents which TUI view is active.
@@ -55,15 +67,25 @@ func (a *App) Init() tea.Cmd {
 	if a.provider == nil {
 		return nil
 	}
-	// Kick off async message load.
-	return func() tea.Msg {
-		msgs, err := a.provider.ListMessages(model.ListOptions{Limit: 50})
-		return msgsLoaded{messages: msgs, err: err}
-	}
+	return tea.Batch(
+		// Kick off async message load.
+		func() tea.Msg {
+			msgs, err := a.provider.ListMessages(model.ListOptions{Limit: 50})
+			return msgsLoaded{messages: msgs, err: err}
+		},
+		tickCmd(),
+	)
 }
 
 func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tickMsg:
+		if a.loading {
+			a.spinnerFrame = (a.spinnerFrame + 1) % len(spinnerFrames)
+			return a, tickCmd()
+		}
+		return a, nil
+
 	case msgsLoaded:
 		a.loading = false
 		if msg.err != nil {
@@ -103,7 +125,8 @@ func (a *App) View() tea.View {
 	case a.err != "":
 		content = StyleError.Render(a.err) + "\n\nPress q to quit.\n"
 	case a.loading:
-		content = StyleDim.Render("Loading messages...") + "\n"
+		frame := spinnerFrames[a.spinnerFrame]
+		content = StyleTitle.Render(frame) + " " + StyleDim.Render("Fetching messages...") + "\n"
 	case a.listView != nil:
 		content = a.listView.Render(80)
 	default:
