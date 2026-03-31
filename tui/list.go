@@ -79,7 +79,7 @@ func (lv *ListView) FilteredMessages() []model.Message {
 func (lv *ListView) Render(width int) string {
 	filtered := lv.FilteredMessages()
 	if len(filtered) == 0 {
-		return StyleDim.Render("No messages.")
+		return StyleDim.Render("No messages.") + "\n"
 	}
 	var lines []byte
 	for i, m := range filtered {
@@ -89,10 +89,29 @@ func (lv *ListView) Render(width int) string {
 		}
 		unread := " "
 		if m.Unread {
-			unread = "*"
+			unread = StyleTitle.Render("●")
 		}
-		line := StyleDim.Render(cursor) + unread + " " + m.From + " — " + m.Subject + "\n"
+		from := truncate(m.From, 24)
+		subject := m.Subject
+		if subject == "" {
+			subject = StyleDim.Render("(no subject)")
+		}
+		date := StyleDim.Render(truncate(m.ReceivedAt, 16))
+		var line string
+		if i == lv.cursor {
+			line = StyleBold.Render(cursor+unread+" "+from) + "  " + subject + "  " + date + "\n"
+		} else {
+			line = StyleDim.Render(cursor) + unread + " " + from + "  " + StyleDim.Render(subject) + "  " + date + "\n"
+		}
 		lines = append(lines, []byte(line)...)
 	}
 	return string(lines)
+}
+
+func truncate(s string, max int) string {
+	runes := []rune(s)
+	if len(runes) <= max {
+		return s
+	}
+	return string(runes[:max-1]) + "…"
 }
