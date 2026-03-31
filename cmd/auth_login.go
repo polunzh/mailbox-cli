@@ -50,7 +50,7 @@ var authLoginCmd = &cobra.Command{
 			if err != nil {
 				return fmt.Errorf("oauth: %w", err)
 			}
-			email, token, err := exchangeGmailCode(code)
+			email, token, err := exchangeGmailCode(oauthSrv.Port(), code)
 			if err != nil {
 				return fmt.Errorf("gmail token exchange: %w", err)
 			}
