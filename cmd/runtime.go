@@ -50,7 +50,7 @@ func resolveAccount(store *account.Store, accountFlag string) (model.Account, er
 	if accountFlag == "" {
 		acct, err := store.GetDefault()
 		if err != nil {
-			return model.Account{}, fmt.Errorf("no account specified and no default account configured; run 'mailbox auth login' first")
+			return model.Account{}, fmt.Errorf("%w: run 'mailbox auth login' first", ErrNoDefaultAccount)
 		}
 		return acct, nil
 	}
