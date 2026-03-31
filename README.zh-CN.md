@@ -70,6 +70,33 @@ mailbox --json send --to a@b.com --subject "Hi" --body "Hello"
 
 错误格式：`{ "error": { "code": "...", "message": "..." } }`
 
+## 配置
+
+### Gmail
+
+1. 前往 [Google Cloud Console](https://console.cloud.google.com/) 创建项目。
+2. 在 APIs & Services 中启用 **Gmail API**。
+3. 创建 **OAuth 2.0 客户端 ID**（应用类型选 Desktop app）。
+4. 记录 Client ID 和 Client Secret。
+5. 运行 `auth login` 前设置环境变量：
+
+```bash
+export GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+export GOOGLE_CLIENT_SECRET=your-client-secret
+mailbox auth login --provider gmail
+```
+
+建议将 export 写入 `~/.zshrc` 或 `~/.bashrc` 以持久生效。
+
+### QQ 邮箱
+
+在 QQ 邮箱设置 → 账户 → POP3/IMAP/SMTP 中开启服务并生成授权码，然后：
+
+```bash
+mailbox auth login --provider qq --email you@qq.com
+# 按提示输入授权码
+```
+
 ## 支持的邮件提供商
 
 | 提供商 | 认证方式 | 协议 |

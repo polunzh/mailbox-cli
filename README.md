@@ -70,6 +70,33 @@ mailbox --json send --to a@b.com --subject "Hi" --body "Hello"
 
 Error shape: `{ "error": { "code": "...", "message": "..." } }`
 
+## Setup
+
+### Gmail
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/) and create a project.
+2. Enable the **Gmail API** under APIs & Services.
+3. Create an **OAuth 2.0 Client ID** (Application type: Desktop app).
+4. Download the credentials and note the Client ID and Client Secret.
+5. Set environment variables before running `auth login`:
+
+```bash
+export GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+export GOOGLE_CLIENT_SECRET=your-client-secret
+mailbox auth login --provider gmail
+```
+
+To persist across sessions, add the exports to your shell profile (`~/.zshrc`, `~/.bashrc`, etc.).
+
+### QQ Mail
+
+Enable IMAP/SMTP access and generate an app password (授权码) in QQ Mail settings → Account → POP3/IMAP/SMTP. Then:
+
+```bash
+mailbox auth login --provider qq --email you@qq.com
+# Enter the app password when prompted
+```
+
 ## Supported Providers
 
 | Provider | Auth | Protocol |
