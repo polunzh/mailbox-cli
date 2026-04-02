@@ -96,8 +96,8 @@ func TestRemove_ClearsDefault(t *testing.T) {
 	store, _ := NewStore(filepath.Join(dir, "config.json"))
 
 	acct := model.Account{ID: "gmail:test@example.com", Provider: "gmail", Email: "test@example.com"}
-	store.Add(acct)
-	store.SetDefault(acct.ID)
+	_ = store.Add(acct)
+	_ = store.SetDefault(acct.ID)
 
 	// Remove the default account
 	if err := store.Remove(acct.ID); err != nil {
@@ -156,7 +156,9 @@ func TestList_ReturnsCopy(t *testing.T) {
 	store, _ := NewStore(filepath.Join(dir, "config.json"))
 
 	acct := model.Account{ID: "gmail:test@example.com", Provider: "gmail", Email: "test@example.com"}
-	store.Add(acct)
+	if err := store.Add(acct); err != nil {
+		t.Fatal(err)
+	}
 
 	list1, _ := store.List()
 	list2, _ := store.List()
@@ -178,11 +180,16 @@ func TestStore_PersistsToFile(t *testing.T) {
 
 	store1, _ := NewStore(path)
 	acct := model.Account{ID: "gmail:test@example.com", Provider: "gmail", Email: "test@example.com"}
-	store1.Add(acct)
+	if err := store1.Add(acct); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create new store pointing to same file
 	store2, _ := NewStore(path)
-	list, _ := store2.List()
+	list, err := store2.List()
+	if err != nil {
+		t.Fatal(err)
+	}
 	if len(list) != 1 {
 		t.Fatalf("expected 1 account after loading from file, got %d", len(list))
 	}

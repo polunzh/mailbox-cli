@@ -94,9 +94,9 @@ func TestFileStore_Delete_OneOfMany(t *testing.T) {
 	store := NewFileStore(filepath.Join(dir, "creds.json"))
 
 	// Set multiple keys
-	store.Set("key1", "value1")
-	store.Set("key2", "value2")
-	store.Set("key3", "value3")
+	_ = store.Set("key1", "value1")
+	_ = store.Set("key2", "value2")
+	_ = store.Set("key3", "value3")
 
 	// Delete one key
 	if err := store.Delete("key2"); err != nil {
