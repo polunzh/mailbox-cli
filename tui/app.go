@@ -454,27 +454,53 @@ func (a *App) renderMessageList(width int) string {
 }
 
 func (a *App) renderMessageRow(m model.Message, selected bool, width int) string {
+	// Fixed column widths
+	statusW := 2   // ▶ or space + unread dot
+	dateW := 12    // Fixed width for date
+	fromW := 20    // Fixed width for sender
+	subjW := width - statusW - dateW - fromW - 5 // Remaining for subject (minus spaces)
+	if subjW < 10 {
+		subjW = 10
+	}
+
+	// Build status indicator
+	var status string
+	if selected {
+		status = "▶"
+	} else {
+		status = " "
+	}
+
 	unread := " "
 	if m.Unread {
 		unread = StyleUnreadDot.Render("●")
 	}
 
-	from := Truncate(m.From, 16)
-	subj := Truncate(m.Subject, width-28)
-	date := formatDateShort(m.ReceivedAt)
+	// Format columns with fixed widths
+	date := padRight(formatDateShort(m.ReceivedAt), dateW)
+	from := padRight(Truncate(m.From, fromW-1), fromW)
+	subj := Truncate(m.Subject, subjW)
 
-	// Selected row: highlighted background with arrow indicator
+	// Build row - ensure single line, no wrapping
+	row := fmt.Sprintf("%s %s %s %s %s", status, unread, date, from, subj)
+
+	// Apply styles with MaxHeight to prevent wrapping
 	if selected {
-		row := fmt.Sprintf(" ▶ %s %s %-18s %s", unread, date, from, subj)
-		return StyleListItemSelected.Width(width).Render(row)
+		return StyleListItemSelected.MaxHeight(1).Render(row)
 	}
-
-	// Unread row: bold text
-	row := fmt.Sprintf("   %s %s %-18s %s", unread, date, from, subj)
 	if m.Unread {
-		return StyleListItemUnread.Width(width).Render(row)
+		return StyleListItemUnread.MaxHeight(1).Render(row)
 	}
-	return StyleListItem.Width(width).Render(row)
+	return StyleListItem.MaxHeight(1).Render(row)
+}
+
+// padRight pads string with spaces to ensure fixed width
+func padRight(s string, width int) string {
+	w := lipgloss.Width(s)
+	if w >= width {
+		return s
+	}
+	return s + strings.Repeat(" ", width-w)
 }
 
 func (a *App) renderDetailPanel(width int) string {
@@ -671,7 +697,7 @@ func formatDateShort(t string) string {
 		}
 	}
 	if err != nil {
-		return t[:min(len(t), 10)]
+		return padRight(t[:min(len(t), 10)], 10)
 	}
 
 	now := time.Now()
@@ -681,11 +707,11 @@ func formatDateShort(t string) string {
 	diff := today.Sub(msgDay)
 	switch diff {
 	case 0:
-		return parsed.Format("15:04")
+		return parsed.Format("15:04")      // 5 chars
 	case 24 * time.Hour:
-		return "Yesterday"
+		return "Yesterday"                 // 8 chars
 	default:
-		return parsed.Format("01/02")
+		return parsed.Format("Jan 02")     // 6 chars like "Apr 01"
 	}
 }
 

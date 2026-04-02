@@ -43,17 +43,25 @@ var (
 			Background(ColorSecondary).
 			Padding(0, 1)
 
-	// List styles - improved highlighting
-	StyleListItem         = lipgloss.NewStyle().PaddingLeft(1)
+	// List styles - improved highlighting, single line only
+	StyleListItem = lipgloss.NewStyle().
+			PaddingLeft(1).
+			MaxHeight(1).
+			Height(1)
+
 	StyleListItemSelected = lipgloss.NewStyle().
 				Bold(true).
 				Foreground(ColorText).
 				Background(ColorPrimary).
-				PaddingLeft(1)
+				PaddingLeft(1).
+				MaxHeight(1).
+				Height(1)
 
 	StyleListItemUnread = lipgloss.NewStyle().
 				Bold(true).
-				Foreground(ColorText)
+				Foreground(ColorText).
+				MaxHeight(1).
+				Height(1)
 
 	// Status bar
 	StyleStatusBar = lipgloss.NewStyle().
