@@ -154,32 +154,32 @@ jobs:
       - name: Ensure tap README files
         run: |
           if [ ! -f homebrew-tap/README.md ]; then
-            cat > homebrew-tap/README.md <<'EOF'
-[中文](./README.zh-CN.md) | **English**
-
-# homebrew-tap
-
-Homebrew tap for `mailbox`.
-
-```bash
-brew tap polunzh/tap
-brew install mailbox
-```
-EOF
+            printf '%s\n' \
+              '[中文](./README.zh-CN.md) | **English**' \
+              '' \
+              '# homebrew-tap' \
+              '' \
+              'Homebrew tap for `mailbox`.' \
+              '' \
+              '```bash' \
+              'brew tap polunzh/tap' \
+              'brew install mailbox' \
+              '```' \
+              > homebrew-tap/README.md
           fi
           if [ ! -f homebrew-tap/README.zh-CN.md ]; then
-            cat > homebrew-tap/README.zh-CN.md <<'EOF'
-**中文** | [English](./README.md)
-
-# homebrew-tap
-
-`mailbox` 的 Homebrew tap。
-
-```bash
-brew tap polunzh/tap
-brew install mailbox
-```
-EOF
+            printf '%s\n' \
+              '**中文** | [English](./README.md)' \
+              '' \
+              '# homebrew-tap' \
+              '' \
+              '`mailbox` 的 Homebrew tap。' \
+              '' \
+              '```bash' \
+              'brew tap polunzh/tap' \
+              'brew install mailbox' \
+              '```' \
+              > homebrew-tap/README.zh-CN.md
           fi
 
       - name: Commit and push formula update
