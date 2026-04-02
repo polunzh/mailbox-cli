@@ -8,6 +8,8 @@ A terminal email client for developers. Supports an interactive TUI for daily us
 
 - **Modern TUI**: Split-pane layout (wide screens) or single-pane (narrow), vim-style keybindings
 - **Responsive**: Automatically adapts to terminal size; list + detail side-by-side or full-screen
+- **Persistent Toolbar**: Bottom shortcut bar showing context-aware keybindings
+- **Visual Feedback**: Blue background highlight for selected row, unread messages marked with ●
 - **Pagination**: Auto-load more messages when scrolling near bottom
 - **CLI subcommands**: `auth`, `list`, `read`, `send`, `reply` for scripting
 - **Multi-account**: Gmail (OAuth2) + QQ Mail (IMAP/SMTP)
@@ -53,6 +55,8 @@ mailbox
 **Features:**
 - Split-pane on wide terminals (≥100 cols): list on left, detail on right
 - Single-pane on narrow terminals: list or detail full-screen
+- Persistent toolbar at bottom showing available shortcuts
+- Blue background highlight for selected message
 - Auto-pagination: scroll to bottom to load more messages
 - Unread messages marked with ● and bold text
 
