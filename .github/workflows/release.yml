@@ -105,3 +105,92 @@ jobs:
           else
             gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes
           fi
+
+  update-homebrew-tap:
+    name: Update Homebrew Tap
+    needs: publish-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: release-*
+          merge-multiple: true
+
+      - name: Check out Homebrew tap
+        uses: actions/checkout@v4
+        with:
+          repository: polunzh/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+          path: homebrew-tap
+
+      - name: Generate formula
+        env:
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir -p homebrew-tap/Formula
+          DARWIN_AMD64_SHA="$(cut -d' ' -f1 "dist/mailbox_${TAG#v}_darwin-amd64.tar.gz.sha256")"
+          DARWIN_ARM64_SHA="$(cut -d' ' -f1 "dist/mailbox_${TAG#v}_darwin-arm64.tar.gz.sha256")"
+          go run ./cmd/release-homebrew-formula \
+            --repo "$REPO" \
+            --version "$TAG" \
+            --darwin-amd64-sha "$DARWIN_AMD64_SHA" \
+            --darwin-arm64-sha "$DARWIN_ARM64_SHA" \
+            > homebrew-tap/Formula/mailbox.rb
+
+      - name: Ensure tap README files
+        run: |
+          if [ ! -f homebrew-tap/README.md ]; then
+            cat > homebrew-tap/README.md <<'EOF'
+[中文](./README.zh-CN.md) | **English**
+
+# homebrew-tap
+
+Homebrew tap for `mailbox`.
+
+```bash
+brew tap polunzh/tap
+brew install mailbox
+```
+EOF
+          fi
+          if [ ! -f homebrew-tap/README.zh-CN.md ]; then
+            cat > homebrew-tap/README.zh-CN.md <<'EOF'
+**中文** | [English](./README.md)
+
+# homebrew-tap
+
+`mailbox` 的 Homebrew tap。
+
+```bash
+brew tap polunzh/tap
+brew install mailbox
+```
+EOF
+          fi
+
+      - name: Commit and push formula update
+        working-directory: homebrew-tap
+        run: |
+          if git diff --quiet -- Formula/mailbox.rb README.md README.zh-CN.md; then
+            echo "No Homebrew tap changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/mailbox.rb README.md README.zh-CN.md
+          git commit -m "mailbox ${GITHUB_REF_NAME}"
+          git push origin HEAD

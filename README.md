@@ -21,6 +21,14 @@ A terminal email client for developers. Supports an interactive TUI for daily us
 
 ## Installation
 
+On macOS, Homebrew is the recommended installation method:
+
+```bash
+brew install polunzh/tap/mailbox
+```
+
+You can also install the latest version with Go:
+
 ```bash
 go install github.com/polunzh/mailbox-cli@latest
 ```
@@ -33,7 +41,7 @@ cd mailbox-cli
 go build -o mailbox .
 ```
 
-Prebuilt archives for tagged versions are published on [GitHub Releases](https://github.com/polunzh/mailbox-cli/releases).
+Prebuilt archives for tagged versions are published on [GitHub Releases](https://github.com/polunzh/mailbox-cli/releases). The Homebrew formula is published to [`polunzh/tap`](https://github.com/polunzh/homebrew-tap).
 
 To cut a release from your local checkout:
 

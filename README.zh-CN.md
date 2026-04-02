@@ -21,6 +21,14 @@
 
 ## 安装
 
+在 macOS 上，推荐使用 Homebrew 安装：
+
+```bash
+brew install polunzh/tap/mailbox
+```
+
+也可以用 Go 安装最新版：
+
 ```bash
 go install github.com/polunzh/mailbox-cli@latest
 ```
@@ -33,7 +41,7 @@ cd mailbox-cli
 go build -o mailbox .
 ```
 
-带版本号的预编译压缩包会发布在 [GitHub Releases](https://github.com/polunzh/mailbox-cli/releases)。
+带版本号的预编译压缩包会发布在 [GitHub Releases](https://github.com/polunzh/mailbox-cli/releases)。Homebrew formula 会发布到 [`polunzh/tap`](https://github.com/polunzh/homebrew-tap)。
 
 在本地发版可直接执行：
 

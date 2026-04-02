@@ -1,4 +1,4 @@
-.PHONY: build clean test test-cover coverage install run lint fmt check release-assets release-tag release-push release
+.PHONY: build clean test test-cover coverage install run lint fmt check release-assets release-tag release-push release homebrew-formula
 
 BINARY_NAME=mailbox
 BUILD_DIR=bin
@@ -108,6 +108,20 @@ release-push: release-check
 release: check release-tag release-push
 	@echo "Release flow started for $(VERSION)"
 
+homebrew-formula: release-check
+	@version_no_v="$${VERSION#v}"; \
+		amd64_file="$(DIST_DIR)/mailbox_$${version_no_v}_darwin-amd64.tar.gz.sha256"; \
+		arm64_file="$(DIST_DIR)/mailbox_$${version_no_v}_darwin-arm64.tar.gz.sha256"; \
+		if [ ! -f "$$amd64_file" ] || [ ! -f "$$arm64_file" ]; then \
+			echo "Missing darwin release checksums under $(DIST_DIR)/. Run 'make release-assets VERSION=$(VERSION)' first."; \
+			exit 1; \
+		fi; \
+		go run ./cmd/release-homebrew-formula \
+			--repo polunzh/mailbox-cli \
+			--version "$(VERSION)" \
+			--darwin-amd64-sha "$$(cut -d' ' -f1 "$$amd64_file")" \
+			--darwin-arm64-sha "$$(cut -d' ' -f1 "$$arm64_file")"
+
 # Format code
 fmt:
 	$(GO) fmt ./...
@@ -145,5 +159,6 @@ help:
 	@echo "  release-tag     - Create a git tag locally (VERSION=v0.1.0)"
 	@echo "  release-push    - Push an existing release tag (VERSION=v0.1.0)"
 	@echo "  release         - Run checks, create tag, and push it (VERSION=v0.1.0)"
+	@echo "  homebrew-formula - Render the Homebrew formula from dist checksums (VERSION=v0.1.0)"
 	@echo "  dev             - Run with hot reload (requires air)"
 	@echo "  help            - Show this help"
