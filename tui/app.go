@@ -524,10 +524,18 @@ func (a *App) renderMessageList(width int) string {
 	var lines []string
 	listHeight := a.height - 10
 	end := min(len(a.filtered), a.scrollOffset+listHeight)
+	showScrollbar := len(a.filtered) > listHeight
+	rowWidth := width
+	if showScrollbar {
+		rowWidth = max(10, width-2)
+	}
 
 	for i := a.scrollOffset; i < end; i++ {
 		m := a.filtered[i]
-		line := a.renderMessageRow(m, i == a.cursor, width)
+		line := a.renderMessageRow(m, i == a.cursor, rowWidth)
+		if showScrollbar {
+			line += " " + a.renderScrollbarCell(i, listHeight)
+		}
 		lines = append(lines, line)
 	}
 
@@ -535,11 +543,28 @@ func (a *App) renderMessageList(width int) string {
 	if a.loadingMore {
 		frame := spinnerFrames[a.spinnerFrame]
 		lines = append(lines, "\n  "+StyleDim.Render(frame)+" Loading more...")
-	} else if a.hasMore && len(a.filtered) > 0 {
+	} else if a.hasMore && len(a.filtered) > 0 && !showScrollbar {
 		lines = append(lines, "\n  "+StyleDim.Render("Scroll down to load more"))
 	}
 
 	return strings.Join(lines, "\n")
+}
+
+func (a *App) renderScrollbarCell(index, visibleHeight int) string {
+	total := len(a.filtered)
+	if total <= visibleHeight || visibleHeight <= 0 {
+		return ""
+	}
+
+	thumbSize := max(1, visibleHeight*visibleHeight/total)
+	maxOffset := max(1, total-visibleHeight)
+	thumbTop := (a.scrollOffset * max(0, visibleHeight-thumbSize)) / maxOffset
+	row := index - a.scrollOffset
+
+	if row >= thumbTop && row < thumbTop+thumbSize {
+		return StyleDim.Render("█")
+	}
+	return StyleDim.Render("│")
 }
 
 func (a *App) renderMessageRow(m model.Message, selected bool, width int) string {
