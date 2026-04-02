@@ -187,7 +187,9 @@ func TestResolveAccount_UsesFlagWhenProvided(t *testing.T) {
 	dir := t.TempDir()
 	store, _ := account.NewStore(filepath.Join(dir, "config.json"))
 	acct := model.Account{ID: "gmail:test@example.com", Provider: "gmail", Email: "test@example.com"}
-	store.Add(acct)
+	if err := store.Add(acct); err != nil {
+		t.Fatal(err)
+	}
 
 	result, err := resolveAccount(store, "gmail:test@example.com")
 	if err != nil {
@@ -202,8 +204,12 @@ func TestResolveAccount_UsesDefaultWhenNoFlag(t *testing.T) {
 	dir := t.TempDir()
 	store, _ := account.NewStore(filepath.Join(dir, "config.json"))
 	acct := model.Account{ID: "gmail:test@example.com", Provider: "gmail", Email: "test@example.com"}
-	store.Add(acct)
-	store.SetDefault(acct.ID)
+	if err := store.Add(acct); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.SetDefault(acct.ID); err != nil {
+		t.Fatal(err)
+	}
 
 	result, err := resolveAccount(store, "")
 	if err != nil {
