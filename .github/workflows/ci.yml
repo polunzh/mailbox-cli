@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [master, main]
 
+permissions:
+  contents: read
+  checks: write
+
 jobs:
   test:
     name: Test
@@ -29,8 +33,7 @@ jobs:
           files: ./coverage.out
           fail_ci_if_error: false
           verbose: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Generate coverage badge
         run: |
