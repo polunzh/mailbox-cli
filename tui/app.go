@@ -19,8 +19,10 @@ type msgsLoaded struct {
 
 // detailLoaded is sent when message detail fetch completes
 type detailLoaded struct {
-	detail *model.MessageDetail
-	err    error
+	detail      *model.MessageDetail
+	err         error
+	keepCurrent bool
+	statusOnErr string
 }
 
 // ViewState represents which view is active
@@ -149,6 +151,10 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.loading = false
 		a.previewLoading = false
 		if msg.err != nil {
+			if msg.keepCurrent && a.selectedMsg != nil {
+				a.setStatus(msg.statusOnErr)
+				return a, nil
+			}
 			a.setStatus(fmt.Sprintf("Error: %v", msg.err))
 		} else {
 			a.selectedMsg = msg.detail
@@ -316,48 +322,46 @@ func (a *App) handleComposeKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 }
 
 func (a *App) openMessage(loc model.MessageLocator) (tea.Model, tea.Cmd) {
-	// Check cache first
 	if cached := a.getCachedDetail(loc.ID); cached != nil {
 		a.selectedMsg = cached
 		a.detailScroll = 0
 		if a.width < minSplitWidth {
 			a.state = viewDetail
 		}
-		return a, nil
+		a.loading = true
+		return a, tea.Batch(tickCmd(), a.fetchDetailCmd(loc, true))
 	}
 
 	a.loading = true
 	a.setStatus("Loading...")
-	return a, tea.Batch(tickCmd(), func() tea.Msg {
-		detail, err := a.provider.GetMessage(loc)
-		if err == nil && detail != nil {
-			// Store in cache
-			a.setCachedDetail(loc.ID, detail)
-		}
-		return detailLoaded{detail: detail, err: err}
-	})
+	return a, tea.Batch(tickCmd(), a.fetchDetailCmd(loc, false))
 }
 
 func (a *App) loadPreview(loc model.MessageLocator) tea.Cmd {
-	// Check cache first
 	if cached := a.getCachedDetail(loc.ID); cached != nil {
 		a.selectedMsg = cached
 		a.detailScroll = 0
-		return nil
+		a.previewLoading = true
+		return a.fetchDetailCmd(loc, true)
 	}
 
-	// Show loading indicator
 	a.previewLoading = true
+	return a.fetchDetailCmd(loc, false)
+}
 
-	// Fetch from API
+func (a *App) fetchDetailCmd(loc model.MessageLocator, keepCurrentOnErr bool) tea.Cmd {
 	return func() tea.Msg {
 		detail, err := a.provider.GetMessage(loc)
 		if err == nil && detail != nil {
 			a.setCachedDetail(loc.ID, detail)
-			return detailLoaded{detail: detail, err: nil}
+			return detailLoaded{detail: detail}
 		}
-		// Return empty result to reset loading state
-		return detailLoaded{detail: nil, err: err}
+		return detailLoaded{
+			detail:      nil,
+			err:         err,
+			keepCurrent: keepCurrentOnErr,
+			statusOnErr: "已经是最新的 Tip",
+		}
 	}
 }
 
