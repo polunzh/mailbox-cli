@@ -420,9 +420,15 @@ func (a *App) View() tea.View {
 	var content string
 	switch a.state {
 	case viewHelp:
-		content = a.renderHelp()
+		helpPanel := a.renderHelp()
+		status := a.renderStatusBar()
+		toolbar := a.renderToolbar()
+		content = lipgloss.JoinVertical(lipgloss.Left, helpPanel, status, toolbar)
 	case viewCompose:
-		content = a.renderCompose()
+		composePanel := a.renderCompose()
+		status := a.renderStatusBar()
+		toolbar := a.renderToolbar()
+		content = lipgloss.JoinVertical(lipgloss.Left, composePanel, status, toolbar)
 	default:
 		// Use split pane on wide screens, single pane on narrow
 		if a.width >= minSplitWidth {
@@ -760,7 +766,7 @@ func (a *App) renderHelp() string {
 
 	return StylePanelActive.
 		Width(min(50, a.width-4)).
-		Height(min(18, a.height-4)).
+		Height(a.height - 6).
 		Render(help)
 }
 
@@ -780,7 +786,7 @@ func (a *App) renderCompose() string {
 `
 	return StylePanelActive.
 		Width(min(60, a.width-4)).
-		Height(min(12, a.height-4)).
+		Height(a.height - 6).
 		Render(content)
 }
 
