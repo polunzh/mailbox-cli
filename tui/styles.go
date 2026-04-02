@@ -43,12 +43,12 @@ var (
 			Background(ColorSecondary).
 			Padding(0, 1)
 
-	// List styles
+	// List styles - improved highlighting
 	StyleListItem         = lipgloss.NewStyle().PaddingLeft(1)
 	StyleListItemSelected = lipgloss.NewStyle().
 				Bold(true).
-				Foreground(ColorHighlight).
-				Background(lipgloss.Color("236")).
+				Foreground(ColorText).
+				Background(ColorPrimary).
 				PaddingLeft(1)
 
 	StyleListItemUnread = lipgloss.NewStyle().
@@ -81,6 +81,20 @@ var (
 	// Separator
 	StyleSeparator = lipgloss.NewStyle().
 			Foreground(ColorSecondary)
+
+	// Toolbar (bottom shortcut bar)
+	StyleToolbar = lipgloss.NewStyle().
+			Foreground(ColorText).
+			Background(lipgloss.Color("237"))
+
+	StyleToolbarKey = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(ColorHighlight).
+			Background(lipgloss.Color("237"))
+
+	StyleToolbarSep = lipgloss.NewStyle().
+			Foreground(ColorSecondary).
+			Background(lipgloss.Color("237"))
 )
 
 // TerminalWidth returns the terminal width, or 80 as fallback.

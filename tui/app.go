@@ -373,21 +373,22 @@ func (a *App) renderSplitView() string {
 
 	listPanel := StylePanelActive.
 		Width(listWidth - 2).
-		Height(a.height - 3).
+		Height(a.height - 4).
 		Render(StylePanelHeader.Render(listTitle) + "\n" + listContent)
 
 	// Right panel - Detail view
 	detailContent := a.renderDetailPanel(detailWidth - 4)
 	detailPanel := StylePanel.
 		Width(detailWidth - 2).
-		Height(a.height - 3).
+		Height(a.height - 4).
 		Render(StylePanelHeader.Render(" Message ") + "\n" + detailContent)
 
 	// Combine panels
 	body := lipgloss.JoinHorizontal(lipgloss.Top, listPanel, detailPanel)
 	status := a.renderStatusBar()
+	toolbar := a.renderToolbar()
 
-	return lipgloss.JoinVertical(lipgloss.Left, body, status)
+	return lipgloss.JoinVertical(lipgloss.Left, body, status, toolbar)
 }
 
 // renderSingleView shows only one panel at a time (narrow screens)
@@ -397,10 +398,11 @@ func (a *App) renderSingleView() string {
 		content = a.renderDetailPanel(a.width - 4)
 		detailPanel := StylePanelActive.
 			Width(a.width - 2).
-			Height(a.height - 3).
+			Height(a.height - 4).
 			Render(StylePanelHeader.Render(" Message ") + "\n" + content)
 		status := a.renderStatusBar()
-		return lipgloss.JoinVertical(lipgloss.Left, detailPanel, status)
+		toolbar := a.renderToolbar()
+		return lipgloss.JoinVertical(lipgloss.Left, detailPanel, status, toolbar)
 	}
 
 	// List view
@@ -411,10 +413,11 @@ func (a *App) renderSingleView() string {
 	}
 	listPanel := StylePanelActive.
 		Width(a.width - 2).
-		Height(a.height - 3).
+		Height(a.height - 4).
 		Render(StylePanelHeader.Render(listTitle) + "\n" + listContent)
 	status := a.renderStatusBar()
-	return lipgloss.JoinVertical(lipgloss.Left, listPanel, status)
+	toolbar := a.renderToolbar()
+	return lipgloss.JoinVertical(lipgloss.Left, listPanel, status, toolbar)
 }
 
 func (a *App) renderMessageList(width int) string {
@@ -430,7 +433,7 @@ func (a *App) renderMessageList(width int) string {
 	}
 
 	var lines []string
-	listHeight := a.height - 8
+	listHeight := a.height - 10
 	end := min(len(a.filtered), a.scrollOffset+listHeight)
 
 	for i := a.scrollOffset; i < end; i++ {
@@ -545,21 +548,8 @@ func (a *App) renderStatusBar() string {
 		count += "+"
 	}
 
-	// Status/hints
-	status := a.statusMsg
-	if status == "" {
-		switch {
-		case a.width >= minSplitWidth && a.selectedMsg != nil:
-			status = "j/k:nav ?:help"
-		case a.state == viewDetail || (a.width < minSplitWidth && a.selectedMsg != nil):
-			status = "esc:back j/k:scroll ?:help"
-		default:
-			status = "?:help"
-		}
-	}
-
 	left := StyleStatusKey.Render(" "+accountInfo+" ") + " " + count
-	right := " " + status + " "
+	right := " " + a.statusMsg + " "
 
 	pad := a.width - lipgloss.Width(left) - lipgloss.Width(right)
 	if pad < 0 {
@@ -567,6 +557,54 @@ func (a *App) renderStatusBar() string {
 	}
 
 	return StyleStatusBar.Width(a.width).Render(left + strings.Repeat(" ", pad) + right)
+}
+
+func (a *App) renderToolbar() string {
+	var items []string
+
+	switch {
+	case a.state == viewDetail || (a.width < minSplitWidth && a.selectedMsg != nil):
+		// Detail view toolbar
+		items = []string{
+			StyleToolbarKey.Render(" j/k "),
+			" scroll ",
+			StyleToolbarKey.Render(" r "),
+			" reply ",
+			StyleToolbarKey.Render(" n "),
+			" new ",
+			StyleToolbarKey.Render(" esc "),
+			" back ",
+			StyleToolbarKey.Render(" ? "),
+			" help ",
+			StyleToolbarKey.Render(" q "),
+			" quit ",
+		}
+	default:
+		// List view toolbar
+		items = []string{
+			StyleToolbarKey.Render(" j/k "),
+			" nav ",
+			StyleToolbarKey.Render(" enter "),
+			" open ",
+			StyleToolbarKey.Render(" r "),
+			" refresh ",
+			StyleToolbarKey.Render(" u "),
+			" unread ",
+			StyleToolbarKey.Render(" ? "),
+			" help ",
+			StyleToolbarKey.Render(" q "),
+			" quit ",
+		}
+	}
+
+	content := strings.Join(items, "")
+	// Pad to fill width
+	contentWidth := lipgloss.Width(content)
+	if contentWidth < a.width {
+		content += strings.Repeat(" ", a.width-contentWidth)
+	}
+
+	return StyleToolbar.Width(a.width).Render(content)
 }
 
 func (a *App) renderHelp() string {
