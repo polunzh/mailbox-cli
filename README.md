@@ -3,10 +3,9 @@
 # mailbox-cli
 
 [![CI](https://github.com/polunzh/mailbox-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/polunzh/mailbox-cli/actions/workflows/ci.yml)
+[![Codecov](./.github/badges/codecov.svg)](https://app.codecov.io/gh/polunzh/mailbox-cli)
 
 A terminal email client for developers. Supports an interactive TUI for daily use and CLI subcommands for scripting and automation.
-
-Coverage reports are available on [Codecov](https://app.codecov.io/gh/polunzh/mailbox-cli).
 
 ## Features
 

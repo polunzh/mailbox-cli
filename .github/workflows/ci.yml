@@ -7,7 +7,7 @@ on:
     branches: [master, main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   test:
@@ -41,6 +41,19 @@ jobs:
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
           echo "Total coverage: $COVERAGE%"
+          mkdir -p .github/badges
+          curl -fsSL "https://img.shields.io/badge/codecov-${COVERAGE}%25-f01f7a?style=flat" -o .github/badges/codecov.svg
+
+      - name: Commit coverage badge
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/badges/codecov.svg
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update codecov badge [skip ci]"
+            git push
+          fi
 
   build:
     name: Build
