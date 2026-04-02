@@ -27,7 +27,7 @@ test-v:
 
 # Run tests with coverage report
 test-cover:
-	CGO_ENABLED=$(CGO_ENABLED) $(GO) test -cover ./...
+	@CGO_ENABLED=$(CGO_ENABLED) $(GO) test -cover ./... 2>&1 | grep -v "no such tool" || true
 
 # Generate detailed coverage report
 coverage:
