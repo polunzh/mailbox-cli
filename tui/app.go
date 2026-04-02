@@ -462,14 +462,14 @@ func (a *App) renderSplitView() string {
 
 	listPanel := StylePanelActive.
 		Width(listWidth - 2).
-		Height(a.height - 4).
+		Height(a.height - 6).
 		Render(StylePanelHeader.Render(listTitle) + "\n" + listContent)
 
 	// Right panel - Detail view
 	detailContent := a.renderDetailPanel(detailWidth - 4)
 	detailPanel := StylePanel.
 		Width(detailWidth - 2).
-		Height(a.height - 4).
+		Height(a.height - 6).
 		Render(StylePanelHeader.Render(" Message ") + "\n" + detailContent)
 
 	// Combine panels
@@ -487,7 +487,7 @@ func (a *App) renderSingleView() string {
 		content = a.renderDetailPanel(a.width - 4)
 		detailPanel := StylePanelActive.
 			Width(a.width - 2).
-			Height(a.height - 4).
+			Height(a.height - 6).
 			Render(StylePanelHeader.Render(" Message ") + "\n" + content)
 		status := a.renderStatusBar()
 		toolbar := a.renderToolbar()
@@ -502,7 +502,7 @@ func (a *App) renderSingleView() string {
 	}
 	listPanel := StylePanelActive.
 		Width(a.width - 2).
-		Height(a.height - 4).
+		Height(a.height - 6).
 		Render(StylePanelHeader.Render(listTitle) + "\n" + listContent)
 	status := a.renderStatusBar()
 	toolbar := a.renderToolbar()
@@ -543,13 +543,19 @@ func (a *App) renderMessageList(width int) string {
 }
 
 func (a *App) renderMessageRow(m model.Message, selected bool, width int) string {
-	// Fixed column widths
-	statusW := 2                                 // ▶ or space + unread dot
-	dateW := 12                                  // Fixed width for date
-	fromW := 20                                  // Fixed width for sender
-	subjW := width - statusW - dateW - fromW - 5 // Remaining for subject (minus spaces)
+	// Keep rows on a single line so the bottom toolbar remains visible even with long lists.
+	statusW := 2
+	dateW := min(12, max(8, width/4))
+	remaining := width - statusW - dateW - 4 // indicator + unread + spaces
+	if remaining < 20 {
+		remaining = 20
+	}
+	fromW := min(20, max(8, remaining/2))
+	subjW := remaining - fromW
 	if subjW < 10 {
-		subjW = 10
+		shortfall := 10 - subjW
+		fromW = max(8, fromW-shortfall)
+		subjW = remaining - fromW
 	}
 
 	// Build status indicator
@@ -571,7 +577,7 @@ func (a *App) renderMessageRow(m model.Message, selected bool, width int) string
 	subj := Truncate(m.Subject, subjW)
 
 	// Build row - ensure single line, no wrapping
-	row := fmt.Sprintf("%s %s %s %s %s", status, unread, date, from, subj)
+	row := Truncate(fmt.Sprintf("%s %s %s %s %s", status, unread, date, from, subj), width)
 
 	// Apply styles with MaxHeight to prevent wrapping
 	if selected {
