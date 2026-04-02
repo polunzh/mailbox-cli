@@ -33,6 +33,13 @@ const (
 	viewHelp
 )
 
+// Layout mode for responsive design
+const (
+	minSplitWidth = 100  // Minimum width to show split pane
+	listMinWidth  = 35   // Minimum list width
+	listMaxWidth  = 50   // Maximum list width
+)
+
 // App is the main TUI application
 type App struct {
 	accounts       []model.Account
@@ -52,6 +59,10 @@ type App struct {
 	showUnreadOnly bool
 	statusMsg      string
 	statusTime     time.Time
+	// Pagination
+	pageSize       int
+	hasMore        bool
+	loadingMore    bool
 }
 
 var spinnerFrames = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
@@ -79,6 +90,8 @@ func NewApp(accounts []model.Account, p provider.MailProvider) *App {
 		width:    120,
 		height:   30,
 		cursor:   0,
+		pageSize: 50,
+		hasMore:  true,
 	}
 }
 
@@ -90,7 +103,7 @@ func (a *App) Init() tea.Cmd {
 	return tea.Batch(
 		tickCmd(),
 		func() tea.Msg {
-			msgs, err := a.provider.ListMessages(model.ListOptions{Limit: 50})
+			msgs, err := a.provider.ListMessages(model.ListOptions{Limit: a.pageSize})
 			return msgsLoaded{messages: msgs, err: err}
 		},
 	)
@@ -105,7 +118,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return a, nil
 
 	case tickMsg:
-		if a.loading {
+		if a.loading || a.loadingMore {
 			a.spinnerFrame = (a.spinnerFrame + 1) % len(spinnerFrames)
 			return a, tickCmd()
 		}
@@ -113,10 +126,14 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case msgsLoaded:
 		a.loading = false
+		a.loadingMore = false
 		if msg.err != nil {
 			a.err = msg.err.Error()
 		} else {
-			a.messages = msg.messages
+			if len(msg.messages) < a.pageSize {
+				a.hasMore = false
+			}
+			a.messages = append(a.messages, msg.messages...)
 			a.applyFilter()
 		}
 		return a, nil
@@ -125,11 +142,13 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.loading = false
 		if msg.err != nil {
 			a.setStatus(fmt.Sprintf("Error: %v", msg.err))
-			a.state = viewList
 		} else {
 			a.selectedMsg = msg.detail
 			a.detailScroll = 0
-			a.state = viewDetail
+			// Only switch to detail view on narrow screens
+			if a.width < minSplitWidth {
+				a.state = viewDetail
+			}
 		}
 		return a, nil
 
@@ -182,7 +201,7 @@ func (a *App) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 }
 
 func (a *App) handleListKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
-	listHeight := a.height - 5
+	listHeight := a.height - 6
 
 	switch msg.String() {
 	case "q":
@@ -196,6 +215,10 @@ func (a *App) handleListKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 			a.cursor++
 			if a.cursor >= a.scrollOffset+listHeight {
 				a.scrollOffset++
+			}
+			// Load more when near bottom
+			if a.cursor >= len(a.filtered)-5 && a.hasMore && !a.loadingMore {
+				return a.loadMore()
 			}
 		}
 	case "k", "up":
@@ -224,9 +247,11 @@ func (a *App) handleListKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		a.setStatus(fmt.Sprintf("Filter: %s", filter))
 	case "r":
 		a.loading = true
+		a.messages = nil
+		a.hasMore = true
 		a.setStatus("Refreshing...")
 		return a, tea.Batch(tickCmd(), func() tea.Msg {
-			msgs, err := a.provider.ListMessages(model.ListOptions{Limit: 50})
+			msgs, err := a.provider.ListMessages(model.ListOptions{Limit: a.pageSize})
 			return msgsLoaded{messages: msgs, err: err}
 		})
 	case "n":
@@ -241,8 +266,10 @@ func (a *App) handleDetailKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	case "q":
 		return a, tea.Quit
 	case "esc", "h", "left", "backspace":
-		a.state = viewList
-		a.selectedMsg = nil
+		// Only go back to list if in full-screen detail mode (narrow screen)
+		if a.width < minSplitWidth {
+			a.state = viewList
+		}
 	case "j", "down", "ctrl+d":
 		a.detailScroll += 3
 	case "k", "up", "ctrl+u":
@@ -281,6 +308,19 @@ func (a *App) openMessage(loc model.MessageLocator) (tea.Model, tea.Cmd) {
 	})
 }
 
+func (a *App) loadMore() (tea.Model, tea.Cmd) {
+	a.loadingMore = true
+	a.setStatus("Loading more...")
+	return a, tea.Batch(tickCmd(), func() tea.Msg {
+		opts := model.ListOptions{
+			Limit:  a.pageSize,
+			Offset: len(a.messages),
+		}
+		msgs, err := a.provider.ListMessages(opts)
+		return msgsLoaded{messages: msgs, err: err}
+	})
+}
+
 func (a *App) setStatus(msg string) {
 	a.statusMsg = msg
 	a.statusTime = time.Now()
@@ -300,10 +340,13 @@ func (a *App) View() tea.View {
 		content = a.renderHelp()
 	case viewCompose:
 		content = a.renderCompose()
-	case viewDetail:
-		content = a.renderDetailView()
 	default:
-		content = a.renderListView()
+		// Use split pane on wide screens, single pane on narrow
+		if a.width >= minSplitWidth {
+			content = a.renderSplitView()
+		} else {
+			content = a.renderSingleView()
+		}
 	}
 
 	v := tea.NewView(content)
@@ -311,8 +354,9 @@ func (a *App) View() tea.View {
 	return v
 }
 
-func (a *App) renderListView() string {
-	listWidth := min(45, a.width/3)
+// renderSplitView shows list and detail side by side (wide screens)
+func (a *App) renderSplitView() string {
+	listWidth := min(listMaxWidth, max(listMinWidth, a.width/3))
 	detailWidth := a.width - listWidth - 1
 
 	// Left panel - Message list
@@ -321,23 +365,23 @@ func (a *App) renderListView() string {
 	if a.showUnreadOnly {
 		listTitle = " Unread "
 	}
+
+	// Show selected indicator in header
+	if a.selectedMsg != nil {
+		listTitle = " ● " + strings.TrimSpace(listTitle) + " "
+	}
+
 	listPanel := StylePanelActive.
 		Width(listWidth - 2).
 		Height(a.height - 3).
 		Render(StylePanelHeader.Render(listTitle) + "\n" + listContent)
 
-	// Right panel - Preview or placeholder
-	var detailContent string
-	if a.loading && a.selectedMsg == nil {
-		frame := spinnerFrames[a.spinnerFrame]
-		detailContent = fmt.Sprintf("\n  %s Loading...", StyleTitle.Render(frame))
-	} else {
-		detailContent = a.renderPreview(detailWidth - 4)
-	}
+	// Right panel - Detail view
+	detailContent := a.renderDetailPanel(detailWidth - 4)
 	detailPanel := StylePanel.
 		Width(detailWidth - 2).
 		Height(a.height - 3).
-		Render(StylePanelHeader.Render(" Preview ") + "\n" + detailContent)
+		Render(StylePanelHeader.Render(" Message ") + "\n" + detailContent)
 
 	// Combine panels
 	body := lipgloss.JoinHorizontal(lipgloss.Top, listPanel, detailPanel)
@@ -346,14 +390,31 @@ func (a *App) renderListView() string {
 	return lipgloss.JoinVertical(lipgloss.Left, body, status)
 }
 
-func (a *App) renderDetailView() string {
-	content := a.renderFullMessage()
-	detailPanel := StylePanelActive.
+// renderSingleView shows only one panel at a time (narrow screens)
+func (a *App) renderSingleView() string {
+	var content string
+	if a.state == viewDetail && a.selectedMsg != nil {
+		content = a.renderDetailPanel(a.width - 4)
+		detailPanel := StylePanelActive.
+			Width(a.width - 2).
+			Height(a.height - 3).
+			Render(StylePanelHeader.Render(" Message ") + "\n" + content)
+		status := a.renderStatusBar()
+		return lipgloss.JoinVertical(lipgloss.Left, detailPanel, status)
+	}
+
+	// List view
+	listContent := a.renderMessageList(a.width - 2)
+	listTitle := " Inbox "
+	if a.showUnreadOnly {
+		listTitle = " Unread "
+	}
+	listPanel := StylePanelActive.
 		Width(a.width - 2).
 		Height(a.height - 3).
-		Render(content)
+		Render(StylePanelHeader.Render(listTitle) + "\n" + listContent)
 	status := a.renderStatusBar()
-	return lipgloss.JoinVertical(lipgloss.Left, detailPanel, status)
+	return lipgloss.JoinVertical(lipgloss.Left, listPanel, status)
 }
 
 func (a *App) renderMessageList(width int) string {
@@ -369,13 +430,21 @@ func (a *App) renderMessageList(width int) string {
 	}
 
 	var lines []string
-	listHeight := a.height - 6
+	listHeight := a.height - 8
 	end := min(len(a.filtered), a.scrollOffset+listHeight)
 
 	for i := a.scrollOffset; i < end; i++ {
 		m := a.filtered[i]
 		line := a.renderMessageRow(m, i == a.cursor, width)
 		lines = append(lines, line)
+	}
+
+	// Add loading indicator at bottom if loading more
+	if a.loadingMore {
+		frame := spinnerFrames[a.spinnerFrame]
+		lines = append(lines, "\n  "+StyleDim.Render(frame)+" Loading more...")
+	} else if a.hasMore && len(a.filtered) > 0 {
+		lines = append(lines, "\n  "+StyleDim.Render("Scroll down to load more"))
 	}
 
 	return strings.Join(lines, "\n")
@@ -388,62 +457,35 @@ func (a *App) renderMessageRow(m model.Message, selected bool, width int) string
 	}
 
 	from := Truncate(m.From, 16)
-	subj := Truncate(m.Subject, width-26)
+	subj := Truncate(m.Subject, width-28)
 	date := formatDateShort(m.ReceivedAt)
 
-	row := fmt.Sprintf(" %s %s %-18s %s", unread, date, from, subj)
-
+	// Selected row: highlighted background with arrow indicator
 	if selected {
+		row := fmt.Sprintf(" ▶ %s %s %-18s %s", unread, date, from, subj)
 		return StyleListItemSelected.Width(width).Render(row)
 	}
+
+	// Unread row: bold text
+	row := fmt.Sprintf("   %s %s %-18s %s", unread, date, from, subj)
 	if m.Unread {
 		return StyleListItemUnread.Width(width).Render(row)
 	}
 	return StyleListItem.Width(width).Render(row)
 }
 
-func (a *App) renderPreview(width int) string {
+func (a *App) renderDetailPanel(width int) string {
 	if a.selectedMsg == nil {
-		return StyleDim.Render("\n  Select a message to preview")
+		return StyleDim.Render("\n  Select a message to view\n\n  (Use Enter to open a message)")
 	}
 	m := a.selectedMsg
 
 	header := fmt.Sprintf(
 		"%s %s\n%s %s\n",
 		StyleBold.Render("From:"), m.From,
-		StyleBold.Render("Subj:"), Truncate(m.Subject, width-8),
+		StyleBold.Render("Subject:"), Truncate(m.Subject, width-10),
 	)
-
-	body := m.TextBody
-	if body == "" {
-		body = StyleDim.Render("(No text content)")
-	}
-
-	// Truncate preview
-	lines := strings.Split(body, "\n")
-	maxLines := a.height - 12
-	if len(lines) > maxLines {
-		lines = lines[:maxLines]
-		lines = append(lines, StyleDim.Render("..."))
-	}
-
-	return header + "\n" + strings.Join(lines, "\n")
-}
-
-func (a *App) renderFullMessage() string {
-	if a.selectedMsg == nil {
-		return StyleDim.Render("No message selected")
-	}
-	m := a.selectedMsg
-
-	header := StylePanelHeader.Render(" Message ") + "\n"
-	header += fmt.Sprintf(
-		"\n %s %s\n %s %s\n %s %s\n",
-		StyleBold.Render("From:"), m.From,
-		StyleBold.Render("Subject:"), m.Subject,
-		StyleBold.Render("Date:"), m.ReceivedAt,
-	)
-	header += " " + StyleSeparator.Render(strings.Repeat("─", a.width-4)) + "\n"
+	header += " " + StyleSeparator.Render(strings.Repeat("─", width-2)) + "\n"
 
 	body := m.TextBody
 	if body == "" {
@@ -452,7 +494,7 @@ func (a *App) renderFullMessage() string {
 
 	// Apply scrolling
 	lines := strings.Split(body, "\n")
-	visibleHeight := a.height - 10
+	visibleHeight := a.height - 14
 	if a.detailScroll > 0 && a.detailScroll >= len(lines) {
 		a.detailScroll = len(lines) - 1
 	}
@@ -464,8 +506,12 @@ func (a *App) renderFullMessage() string {
 	content := header + "\n" + strings.Join(lines, "\n")
 
 	// Show scroll indicator
-	if a.detailScroll > 0 || end < len(strings.Split(m.TextBody, "\n")) {
-		scrollInfo := fmt.Sprintf("\n%s Line %d/%d", StyleDim.Render("─"), a.detailScroll+1, len(strings.Split(m.TextBody, "\n")))
+	totalLines := len(strings.Split(m.TextBody, "\n"))
+	if a.detailScroll > 0 || end < totalLines {
+		scrollInfo := fmt.Sprintf("\n\n%s %d/%d lines",
+			StyleDim.Render("─"),
+			a.detailScroll+min(len(lines), visibleHeight),
+			totalLines)
 		content += scrollInfo
 	}
 
@@ -478,13 +524,13 @@ func (a *App) renderStatusBar() string {
 	if len(a.accounts) > 0 {
 		parts := strings.Split(a.accounts[0].ID, ":")
 		if len(parts) == 2 {
-			accountInfo = parts[1] // email only
+			accountInfo = parts[1]
 		} else {
 			accountInfo = a.accounts[0].ID
 		}
 	}
 
-	// Message count
+	// Message count with pagination info
 	count := fmt.Sprintf("%d msgs", len(a.messages))
 	if a.showUnreadOnly {
 		unread := 0
@@ -495,17 +541,20 @@ func (a *App) renderStatusBar() string {
 		}
 		count = fmt.Sprintf("%d/%d unread", unread, len(a.messages))
 	}
+	if a.hasMore {
+		count += "+"
+	}
 
 	// Status/hints
 	status := a.statusMsg
 	if status == "" {
-		switch a.state {
-		case viewList:
-			status = "?:help"
-		case viewDetail:
-			status = "esc:back j/k:scroll"
+		switch {
+		case a.width >= minSplitWidth && a.selectedMsg != nil:
+			status = "j/k:nav ?:help"
+		case a.state == viewDetail || (a.width < minSplitWidth && a.selectedMsg != nil):
+			status = "esc:back j/k:scroll ?:help"
 		default:
-			status = "esc:close"
+			status = "?:help"
 		}
 	}
 
@@ -528,7 +577,7 @@ func (a *App) renderHelp() string {
   ` + StyleHelpKey.Render("j/k") + `    ` + StyleHelpDesc.Render("Move down/up") + `
   ` + StyleHelpKey.Render("g/G") + `    ` + StyleHelpDesc.Render("First/last message") + `
   ` + StyleHelpKey.Render("Enter") + `  ` + StyleHelpDesc.Render("Open message") + `
-  ` + StyleHelpKey.Render("h/←/Esc") + ` ` + StyleHelpDesc.Render("Go back") + `
+  ` + StyleHelpKey.Render("h/←/Esc") + ` ` + StyleHelpDesc.Render("Go back (narrow mode)") + `
 
 ` + StyleBold.Render("Actions") + `
   ` + StyleHelpKey.Render("n") + `      ` + StyleHelpDesc.Render("New message") + `
@@ -569,7 +618,6 @@ func (a *App) renderCompose() string {
 }
 
 func formatDateShort(t string) string {
-	// Try parsing common formats
 	formats := []string{
 		time.RFC3339,
 		"2006-01-02 15:04:05",

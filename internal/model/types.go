@@ -50,5 +50,6 @@ type Draft struct {
 
 type ListOptions struct {
 	Limit  int
+	Offset int
 	Unread bool
 }
