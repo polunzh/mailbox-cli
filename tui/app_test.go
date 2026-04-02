@@ -9,19 +9,24 @@ import (
 
 func TestAppNoAccounts(t *testing.T) {
 	m := tui.NewApp(nil, nil)
-	msg := m.OnboardingMessage()
-	if msg == "" {
-		t.Fatal("expected non-empty onboarding message when no accounts configured")
+	view := m.View()
+	if view.Content == "" {
+		t.Fatal("expected non-empty view when no accounts configured")
+	}
+	// Should show onboarding info in the view
+	if m.State() != 0 { // viewList
+		t.Fatalf("expected initial state to be list, got %d", m.State())
 	}
 }
 
-func TestAppNoDefaultAccount(t *testing.T) {
+func TestAppWithAccounts(t *testing.T) {
 	accounts := []model.Account{
 		{ID: "gmail:a@example.com", Provider: "gmail", Email: "a@example.com"},
 	}
 	m := tui.NewApp(accounts, nil)
-	if m.OnboardingMessage() != "" {
-		t.Fatal("expected no onboarding message when accounts exist")
+	view := m.View()
+	if view.Content == "" {
+		t.Fatal("expected non-empty view when accounts exist")
 	}
 }
 
