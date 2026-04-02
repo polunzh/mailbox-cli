@@ -101,7 +101,7 @@ var listCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(listCmd)
+	RootCmd.AddCommand(listCmd)
 	listCmd.Flags().IntVar(&listLimit, "limit", 20, "Maximum number of messages")
 	listCmd.Flags().BoolVar(&listUnread, "unread", false, "Show only unread messages")
 }

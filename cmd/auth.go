@@ -8,5 +8,5 @@ var authCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(authCmd)
+	RootCmd.AddCommand(authCmd)
 }

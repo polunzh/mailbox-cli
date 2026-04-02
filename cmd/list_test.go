@@ -1,11 +1,10 @@
-package cmd_test
+package cmd
 
 import (
 	"bytes"
 	"encoding/json"
 	"testing"
 
-	"github.com/polunzh/mailbox-cli/cmd"
 	"github.com/polunzh/mailbox-cli/internal/model"
 )
 
@@ -19,7 +18,7 @@ func TestListJSONShape(t *testing.T) {
 		},
 	}
 	var buf bytes.Buffer
-	if err := cmd.WriteListJSON(&buf, msgs); err != nil {
+	if err := WriteListJSON(&buf, msgs); err != nil {
 		t.Fatal(err)
 	}
 	var out struct {
@@ -52,7 +51,7 @@ func TestReadJSONShape(t *testing.T) {
 		Unread:   false,
 	}
 	var buf bytes.Buffer
-	if err := cmd.WriteReadJSON(&buf, detail); err != nil {
+	if err := WriteReadJSON(&buf, detail); err != nil {
 		t.Fatal(err)
 	}
 	var out struct {
@@ -74,14 +73,14 @@ func TestReadJSONShape(t *testing.T) {
 }
 
 func TestReadRejectsBothIDAndLocator(t *testing.T) {
-	_, err := cmd.ParseSelector("id123", `{"accountId":"a","provider":"gmail","id":"id123"}`)
+	_, err := ParseSelector("id123", `{"accountId":"a","provider":"gmail","id":"id123"}`)
 	if err == nil {
 		t.Fatal("expected error when both <id> and --locator provided")
 	}
 }
 
 func TestReadBrowserRejectedInJSONMode(t *testing.T) {
-	err := cmd.ValidateReadFlags(true, true) // jsonMode=true, browserFlag=true
+	err := validateReadFlags(true, true) // jsonMode=true, browserFlag=true
 	if err == nil {
 		t.Fatal("expected error: --browser not allowed in --json mode")
 	}

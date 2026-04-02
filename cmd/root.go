@@ -10,7 +10,8 @@ var (
 	jsonFlag    bool
 )
 
-var rootCmd = &cobra.Command{
+// RootCmd is the root command for the CLI
+var RootCmd = &cobra.Command{
 	Use:   "mailbox",
 	Short: "A terminal email client",
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -27,10 +28,10 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&accountFlag, "account", "", "Account ID or email")
-	rootCmd.PersistentFlags().BoolVar(&jsonFlag, "json", false, "Output JSON")
+	RootCmd.PersistentFlags().StringVar(&accountFlag, "account", "", "Account ID or email")
+	RootCmd.PersistentFlags().BoolVar(&jsonFlag, "json", false, "Output JSON")
 }
 
 func Execute() error {
-	return rootCmd.Execute()
+	return RootCmd.Execute()
 }

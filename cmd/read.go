@@ -44,7 +44,7 @@ func WriteReadJSON(w io.Writer, detail *model.MessageDetail) error {
 }
 
 // ValidateReadFlags checks incompatible flag combinations.
-func ValidateReadFlags(jsonMode, browserFlag bool) error {
+func validateReadFlags(jsonMode, browserFlag bool) error {
 	if jsonMode && browserFlag {
 		return errors.New("--browser is not allowed in --json mode")
 	}
@@ -73,7 +73,7 @@ var readCmd = &cobra.Command{
 			}
 			return err
 		}
-		if err := ValidateReadFlags(jsonFlag, readBrowser); err != nil {
+		if err := validateReadFlags(jsonFlag, readBrowser); err != nil {
 			if jsonFlag {
 				WriteJSONError(os.Stdout, ErrCodeInvalidArguments, err.Error())
 				return nil
@@ -124,7 +124,7 @@ var readCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(readCmd)
+	RootCmd.AddCommand(readCmd)
 	readCmd.Flags().StringVar(&readLocator, "locator", "", "Message locator JSON")
 	readCmd.Flags().BoolVar(&readBrowser, "browser", false, "Open HTML body in browser")
 }

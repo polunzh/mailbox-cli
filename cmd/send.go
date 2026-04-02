@@ -89,7 +89,7 @@ var sendCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(sendCmd)
+	RootCmd.AddCommand(sendCmd)
 	sendCmd.Flags().StringArrayVar(&sendTo, "to", nil, "Recipient addresses")
 	sendCmd.Flags().StringVar(&sendSubject, "subject", "", "Message subject")
 	sendCmd.Flags().StringVar(&sendBody, "body", "", "Message body")

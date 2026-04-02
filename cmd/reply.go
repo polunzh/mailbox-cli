@@ -105,7 +105,7 @@ var replyCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(replyCmd)
+	RootCmd.AddCommand(replyCmd)
 	replyCmd.Flags().StringVar(&replyLocator, "locator", "", "Original message locator JSON")
 	replyCmd.Flags().StringVar(&replyBody, "body", "", "Reply body")
 	replyCmd.Flags().StringVar(&replySubject, "subject", "", "Override reply subject")
