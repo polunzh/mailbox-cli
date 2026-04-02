@@ -237,7 +237,9 @@ func TestResolveAccount_FallsBackToEmailLookup(t *testing.T) {
 	dir := t.TempDir()
 	store, _ := account.NewStore(filepath.Join(dir, "config.json"))
 	acct := model.Account{ID: "gmail:test@example.com", Provider: "gmail", Email: "test@example.com"}
-	store.Add(acct)
+	if err := store.Add(acct); err != nil {
+		t.Fatal(err)
+	}
 
 	result, err := resolveAccount(store, "test@example.com")
 	if err != nil {
