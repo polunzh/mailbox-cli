@@ -63,6 +63,9 @@ type App struct {
 	pageSize       int
 	hasMore        bool
 	loadingMore    bool
+	// Cache for message details to avoid frequent API calls
+	detailCache    map[string]*model.MessageDetail
+	maxCacheSize   int
 }
 
 var spinnerFrames = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
@@ -83,15 +86,17 @@ func (a *App) State() viewState {
 // NewApp creates the TUI application
 func NewApp(accounts []model.Account, p provider.MailProvider) *App {
 	return &App{
-		accounts: accounts,
-		provider: p,
-		state:    viewList,
-		loading:  p != nil,
-		width:    120,
-		height:   30,
-		cursor:   0,
-		pageSize: 50,
-		hasMore:  true,
+		accounts:     accounts,
+		provider:     p,
+		state:        viewList,
+		loading:      p != nil,
+		width:        120,
+		height:       30,
+		cursor:       0,
+		pageSize:     50,
+		hasMore:      true,
+		detailCache:  make(map[string]*model.MessageDetail),
+		maxCacheSize: 100, // Keep last 100 messages in cache
 	}
 }
 
@@ -216,6 +221,10 @@ func (a *App) handleListKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 			if a.cursor >= a.scrollOffset+listHeight {
 				a.scrollOffset++
 			}
+			// Auto-load preview from cache or fetch
+			if a.width >= minSplitWidth {
+				return a, a.loadPreview(a.filtered[a.cursor].Locator)
+			}
 			// Load more when near bottom
 			if a.cursor >= len(a.filtered)-5 && a.hasMore && !a.loadingMore {
 				return a.loadMore()
@@ -226,6 +235,10 @@ func (a *App) handleListKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 			a.cursor--
 			if a.cursor < a.scrollOffset {
 				a.scrollOffset--
+			}
+			// Auto-load preview from cache or fetch
+			if a.width >= minSplitWidth {
+				return a, a.loadPreview(a.filtered[a.cursor].Locator)
 			}
 		}
 	case "g":
@@ -300,12 +313,76 @@ func (a *App) handleComposeKeys(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 }
 
 func (a *App) openMessage(loc model.MessageLocator) (tea.Model, tea.Cmd) {
+	// Check cache first
+	if cached := a.getCachedDetail(loc.ID); cached != nil {
+		a.selectedMsg = cached
+		a.detailScroll = 0
+		if a.width < minSplitWidth {
+			a.state = viewDetail
+		}
+		return a, nil
+	}
+
 	a.loading = true
 	a.setStatus("Loading...")
 	return a, tea.Batch(tickCmd(), func() tea.Msg {
 		detail, err := a.provider.GetMessage(loc)
+		if err == nil && detail != nil {
+			// Store in cache
+			a.setCachedDetail(loc.ID, detail)
+		}
 		return detailLoaded{detail: detail, err: err}
 	})
+}
+
+func (a *App) loadPreview(loc model.MessageLocator) tea.Cmd {
+	// Check cache first
+	if cached := a.getCachedDetail(loc.ID); cached != nil {
+		a.selectedMsg = cached
+		a.detailScroll = 0
+		return nil
+	}
+
+	// Fetch from API silently (don't show loading spinner for preview)
+	return func() tea.Msg {
+		detail, err := a.provider.GetMessage(loc)
+		if err == nil && detail != nil {
+			a.setCachedDetail(loc.ID, detail)
+			return detailLoaded{detail: detail, err: nil}
+		}
+		// Silently fail for preview - don't show error
+		return nil
+	}
+}
+
+func (a *App) getCachedDetail(id string) *model.MessageDetail {
+	if a.detailCache == nil {
+		return nil
+	}
+	return a.detailCache[id]
+}
+
+func (a *App) setCachedDetail(id string, detail *model.MessageDetail) {
+	if a.detailCache == nil {
+		a.detailCache = make(map[string]*model.MessageDetail)
+	}
+
+	// Enforce cache size limit
+	if len(a.detailCache) >= a.maxCacheSize {
+		// Simple eviction: clear half the cache
+		newCache := make(map[string]*model.MessageDetail)
+		count := 0
+		for k, v := range a.detailCache {
+			if count >= a.maxCacheSize/2 {
+				break
+			}
+			newCache[k] = v
+			count++
+		}
+		a.detailCache = newCache
+	}
+
+	a.detailCache[id] = detail
 }
 
 func (a *App) loadMore() (tea.Model, tea.Cmd) {
