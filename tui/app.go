@@ -7,8 +7,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/zhenqiang/mailbox-cli/internal/model"
-	"github.com/zhenqiang/mailbox-cli/internal/provider"
+	"github.com/polunzh/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/internal/provider"
 )
 
 // msgsLoaded is sent when message list fetch completes
@@ -35,9 +35,9 @@ const (
 
 // Layout mode for responsive design
 const (
-	minSplitWidth = 100  // Minimum width to show split pane
-	listMinWidth  = 35   // Minimum list width
-	listMaxWidth  = 50   // Maximum list width
+	minSplitWidth = 100 // Minimum width to show split pane
+	listMinWidth  = 35  // Minimum list width
+	listMaxWidth  = 50  // Maximum list width
 )
 
 // App is the main TUI application
@@ -60,12 +60,12 @@ type App struct {
 	statusMsg      string
 	statusTime     time.Time
 	// Pagination
-	pageSize       int
-	hasMore        bool
-	loadingMore    bool
+	pageSize    int
+	hasMore     bool
+	loadingMore bool
 	// Cache for message details to avoid frequent API calls
-	detailCache    map[string]*model.MessageDetail
-	maxCacheSize   int
+	detailCache  map[string]*model.MessageDetail
+	maxCacheSize int
 	// Preview loading state
 	previewLoading bool
 }
@@ -544,9 +544,9 @@ func (a *App) renderMessageList(width int) string {
 
 func (a *App) renderMessageRow(m model.Message, selected bool, width int) string {
 	// Fixed column widths
-	statusW := 2   // ▶ or space + unread dot
-	dateW := 12    // Fixed width for date
-	fromW := 20    // Fixed width for sender
+	statusW := 2                                 // ▶ or space + unread dot
+	dateW := 12                                  // Fixed width for date
+	fromW := 20                                  // Fixed width for sender
 	subjW := width - statusW - dateW - fromW - 5 // Remaining for subject (minus spaces)
 	if subjW < 10 {
 		subjW = 10
@@ -816,11 +816,11 @@ func formatDateShort(t string) string {
 	diff := today.Sub(msgDay)
 	switch diff {
 	case 0:
-		return parsed.Format("15:04")      // 5 chars
+		return parsed.Format("15:04") // 5 chars
 	case 24 * time.Hour:
-		return "Yesterday"                 // 8 chars
+		return "Yesterday" // 8 chars
 	default:
-		return parsed.Format("Jan 02")     // 6 chars like "Apr 01"
+		return parsed.Format("Jan 02") // 6 chars like "Apr 01"
 	}
 }
 

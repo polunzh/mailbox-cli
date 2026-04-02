@@ -3,7 +3,7 @@ package provider
 import (
 	"fmt"
 
-	"github.com/zhenqiang/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/internal/model"
 )
 
 // Factory creates a MailProvider given an account and its credential string.

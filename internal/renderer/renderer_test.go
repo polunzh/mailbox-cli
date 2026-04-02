@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/zhenqiang/mailbox-cli/internal/renderer"
+	"github.com/polunzh/mailbox-cli/internal/renderer"
 )
 
 func TestHTMLToText(t *testing.T) {

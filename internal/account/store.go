@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/zhenqiang/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/internal/model"
 )
 
 var (

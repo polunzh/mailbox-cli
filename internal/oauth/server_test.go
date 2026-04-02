@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhenqiang/mailbox-cli/internal/oauth"
+	"github.com/polunzh/mailbox-cli/internal/oauth"
 )
 
 func TestCallbackCapture(t *testing.T) {

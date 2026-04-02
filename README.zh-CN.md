@@ -19,13 +19,13 @@
 ## 安装
 
 ```bash
-go install github.com/zhenqiang/mailbox-cli@latest
+go install github.com/polunzh/mailbox-cli@latest
 ```
 
 或从源码构建：
 
 ```bash
-git clone https://github.com/zhenqiang/mailbox-cli
+git clone https://github.com/polunzh/mailbox-cli
 cd mailbox-cli
 go build -o mailbox .
 ```

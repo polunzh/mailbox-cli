@@ -7,9 +7,9 @@ import (
 	"io"
 	"os"
 
+	"github.com/polunzh/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/internal/provider"
 	"github.com/spf13/cobra"
-	"github.com/zhenqiang/mailbox-cli/internal/model"
-	"github.com/zhenqiang/mailbox-cli/internal/provider"
 )
 
 // ProviderAuthResult is re-exported for use in test files.

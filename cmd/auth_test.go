@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/zhenqiang/mailbox-cli/cmd"
-	"github.com/zhenqiang/mailbox-cli/internal/account"
-	"github.com/zhenqiang/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/cmd"
+	"github.com/polunzh/mailbox-cli/internal/account"
+	"github.com/polunzh/mailbox-cli/internal/model"
 )
 
 // buildTestStore creates a fresh account store in a temp dir.

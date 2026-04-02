@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zhenqiang/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/internal/model"
 )
 
 // ErrMessageNotFound is returned when a message UID does not exist.

@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/zhenqiang/mailbox-cli/internal/account"
-	"github.com/zhenqiang/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/internal/account"
+	"github.com/polunzh/mailbox-cli/internal/model"
 )
 
 func newStore(t *testing.T) *account.Store {

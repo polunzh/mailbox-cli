@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"github.com/polunzh/mailbox-cli/tui"
 	"github.com/spf13/cobra"
-	"github.com/zhenqiang/mailbox-cli/tui"
 )
 
 var (

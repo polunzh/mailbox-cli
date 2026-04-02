@@ -3,8 +3,8 @@ package tui_test
 import (
 	"testing"
 
-	"github.com/zhenqiang/mailbox-cli/internal/model"
-	"github.com/zhenqiang/mailbox-cli/tui"
+	"github.com/polunzh/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/tui"
 )
 
 func TestAppNoAccounts(t *testing.T) {

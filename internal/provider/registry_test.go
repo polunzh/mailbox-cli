@@ -3,8 +3,8 @@ package provider_test
 import (
 	"testing"
 
-	"github.com/zhenqiang/mailbox-cli/internal/model"
-	"github.com/zhenqiang/mailbox-cli/internal/provider"
+	"github.com/polunzh/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/internal/provider"
 )
 
 type fakeProvider struct{}

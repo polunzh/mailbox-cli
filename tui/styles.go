@@ -9,8 +9,8 @@ import (
 
 // Color palette matching popular TUI tools
 var (
-	ColorPrimary   = lipgloss.Color("12")  // Blue
-	ColorSecondary = lipgloss.Color("8")   // Gray
+	ColorPrimary   = lipgloss.Color("12") // Blue
+	ColorSecondary = lipgloss.Color("8")  // Gray
 	ColorSuccess   = lipgloss.Color("10") // Green
 	ColorWarning   = lipgloss.Color("11") // Yellow
 	ColorError     = lipgloss.Color("9")  // Red
@@ -33,15 +33,15 @@ var (
 			Padding(0, 1)
 
 	StylePanelActive = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(ColorPrimary).
-			Padding(0, 1)
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(ColorPrimary).
+				Padding(0, 1)
 
 	StylePanelHeader = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(ColorText).
-			Background(ColorSecondary).
-			Padding(0, 1)
+				Bold(true).
+				Foreground(ColorText).
+				Background(ColorSecondary).
+				Padding(0, 1)
 
 	// List styles - improved highlighting, single line only
 	StyleListItem = lipgloss.NewStyle().

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zhenqiang/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/internal/model"
 )
 
 // GmailProvider implements MailProvider against the Gmail REST API.

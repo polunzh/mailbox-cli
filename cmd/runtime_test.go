@@ -3,8 +3,8 @@ package cmd_test
 import (
 	"testing"
 
-	"github.com/zhenqiang/mailbox-cli/cmd"
-	"github.com/zhenqiang/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/cmd"
+	"github.com/polunzh/mailbox-cli/internal/model"
 )
 
 // --- Selector tests ---

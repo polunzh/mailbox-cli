@@ -6,8 +6,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/polunzh/mailbox-cli/internal/model"
 	"github.com/spf13/cobra"
-	"github.com/zhenqiang/mailbox-cli/internal/model"
 )
 
 // WriteSendJSON writes { "sent": true, "locator": ..., "inReplyTo": ... }.

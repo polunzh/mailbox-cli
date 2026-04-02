@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/zhenqiang/mailbox-cli/internal/account"
+	"github.com/polunzh/mailbox-cli/internal/account"
 )
 
 // ErrorCode is a machine-readable error code for --json mode.

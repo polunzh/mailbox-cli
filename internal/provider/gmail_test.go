@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/zhenqiang/mailbox-cli/internal/model"
-	"github.com/zhenqiang/mailbox-cli/internal/provider"
+	"github.com/polunzh/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/internal/provider"
 )
 
 // gmailListResponse mirrors the Gmail API messages.list response shape.

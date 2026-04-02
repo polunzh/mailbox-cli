@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/zhenqiang/mailbox-cli/internal/credential"
+	"github.com/polunzh/mailbox-cli/internal/credential"
 )
 
 func newFileStore(t *testing.T) credential.Store {

@@ -8,10 +8,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/zhenqiang/mailbox-cli/internal/account"
-	"github.com/zhenqiang/mailbox-cli/internal/credential"
-	"github.com/zhenqiang/mailbox-cli/internal/model"
-	"github.com/zhenqiang/mailbox-cli/internal/provider"
+	"github.com/polunzh/mailbox-cli/internal/account"
+	"github.com/polunzh/mailbox-cli/internal/credential"
+	"github.com/polunzh/mailbox-cli/internal/model"
+	"github.com/polunzh/mailbox-cli/internal/provider"
 )
 
 // configDir returns the mailbox config directory, creating it if needed.

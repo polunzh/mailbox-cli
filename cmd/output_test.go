@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/zhenqiang/mailbox-cli/cmd"
+	"github.com/polunzh/mailbox-cli/cmd"
 )
 
 func TestErrorPayloadShape(t *testing.T) {

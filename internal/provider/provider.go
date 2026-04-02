@@ -1,6 +1,6 @@
 package provider
 
-import "github.com/zhenqiang/mailbox-cli/internal/model"
+import "github.com/polunzh/mailbox-cli/internal/model"
 
 // AuthResult holds credentials returned after authentication.
 type AuthResult struct {

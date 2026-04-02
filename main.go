@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/zhenqiang/mailbox-cli/cmd"
+	"github.com/polunzh/mailbox-cli/cmd"
 )
 
 func main() {

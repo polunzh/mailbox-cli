@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/zhenqiang/mailbox-cli/internal/account"
-	"github.com/zhenqiang/mailbox-cli/internal/credential"
-	"github.com/zhenqiang/mailbox-cli/internal/provider"
+	"github.com/polunzh/mailbox-cli/internal/account"
+	"github.com/polunzh/mailbox-cli/internal/credential"
+	"github.com/polunzh/mailbox-cli/internal/provider"
 )
 
 // Launch starts the TUI.

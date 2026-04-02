@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zhenqiang/mailbox-cli/internal/oauth"
+	"github.com/polunzh/mailbox-cli/internal/oauth"
 	gooauth2 "golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	goterm "golang.org/x/term"
