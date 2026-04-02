@@ -66,6 +66,8 @@ type App struct {
 	// Cache for message details to avoid frequent API calls
 	detailCache    map[string]*model.MessageDetail
 	maxCacheSize   int
+	// Preview loading state
+	previewLoading bool
 }
 
 var spinnerFrames = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
@@ -145,6 +147,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case detailLoaded:
 		a.loading = false
+		a.previewLoading = false
 		if msg.err != nil {
 			a.setStatus(fmt.Sprintf("Error: %v", msg.err))
 		} else {
@@ -343,15 +346,18 @@ func (a *App) loadPreview(loc model.MessageLocator) tea.Cmd {
 		return nil
 	}
 
-	// Fetch from API silently (don't show loading spinner for preview)
+	// Show loading indicator
+	a.previewLoading = true
+
+	// Fetch from API
 	return func() tea.Msg {
 		detail, err := a.provider.GetMessage(loc)
 		if err == nil && detail != nil {
 			a.setCachedDetail(loc.ID, detail)
 			return detailLoaded{detail: detail, err: nil}
 		}
-		// Silently fail for preview - don't show error
-		return nil
+		// Return empty result to reset loading state
+		return detailLoaded{detail: nil, err: err}
 	}
 }
 
@@ -581,10 +587,30 @@ func padRight(s string, width int) string {
 }
 
 func (a *App) renderDetailPanel(width int) string {
+	// Show loading indicator when fetching preview
+	if a.previewLoading && a.selectedMsg == nil {
+		frame := spinnerFrames[a.spinnerFrame]
+		return "\n  " + StyleTitle.Render(frame) + " " + StyleDim.Render("Loading...")
+	}
+
 	if a.selectedMsg == nil {
 		return StyleDim.Render("\n  Select a message to view\n\n  (Use Enter to open a message)")
 	}
 	m := a.selectedMsg
+
+	// Show loading overlay when fetching new preview while keeping old content
+	if a.previewLoading {
+		frame := spinnerFrames[a.spinnerFrame]
+		loadingIndicator := StyleDim.Render(fmt.Sprintf("\n[%s Loading...]\n", frame))
+		// Return current content with loading indicator prepended
+		header := fmt.Sprintf(
+			"%s %s\n%s %s\n",
+			StyleBold.Render("From:"), m.From,
+			StyleBold.Render("Subject:"), Truncate(m.Subject, width-10),
+		)
+		header += " " + StyleSeparator.Render(strings.Repeat("─", width-2)) + "\n"
+		return loadingIndicator + header + StyleDim.Render("\n(previous message content)")
+	}
 
 	header := fmt.Sprintf(
 		"%s %s\n%s %s\n",
