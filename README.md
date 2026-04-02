@@ -6,11 +6,13 @@ A terminal email client for developers. Supports an interactive TUI for daily us
 
 ## Features
 
-- Full-screen TUI (Bubble Tea) with list, detail, and compose views
-- CLI subcommands: `auth`, `list`, `read`, `send`, `reply`
-- Multi-account support (Gmail + QQ Mail)
-- `--json` mode for scripting with structured output and error codes
-- Credentials stored in system keychain with file fallback (0600)
+- **Modern TUI**: Split-pane layout (wide screens) or single-pane (narrow), vim-style keybindings
+- **Responsive**: Automatically adapts to terminal size; list + detail side-by-side or full-screen
+- **Pagination**: Auto-load more messages when scrolling near bottom
+- **CLI subcommands**: `auth`, `list`, `read`, `send`, `reply` for scripting
+- **Multi-account**: Gmail (OAuth2) + QQ Mail (IMAP/SMTP)
+- **JSON mode**: Structured output for automation with error codes
+- **Secure**: Credentials stored in system keychain with file fallback (0600)
 
 ## Installation
 
@@ -33,6 +35,26 @@ go build -o mailbox .
 ```bash
 mailbox
 ```
+
+**Keyboard Shortcuts:**
+
+| Key | Action |
+|-----|--------|
+| `j/k` | Navigate down/up |
+| `g/G` | First/last message |
+| `Enter` | Open message |
+| `h/←/Esc` | Go back (single-pane mode) |
+| `n` | New message hint |
+| `r` | Refresh list / Reply hint |
+| `u` | Toggle unread filter |
+| `?` | Toggle help panel |
+| `q` | Quit |
+
+**Features:**
+- Split-pane on wide terminals (≥100 cols): list on left, detail on right
+- Single-pane on narrow terminals: list or detail full-screen
+- Auto-pagination: scroll to bottom to load more messages
+- Unread messages marked with ● and bold text
 
 ### CLI
 
