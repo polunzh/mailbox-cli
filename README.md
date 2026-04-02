@@ -35,6 +35,12 @@ go build -o mailbox .
 
 Prebuilt archives for tagged versions are published on [GitHub Releases](https://github.com/polunzh/mailbox-cli/releases).
 
+To cut a release from your local checkout:
+
+```bash
+make release VERSION=v0.1.0
+```
+
 ## Usage
 
 ### TUI

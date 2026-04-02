@@ -35,6 +35,12 @@ go build -o mailbox .
 
 带版本号的预编译压缩包会发布在 [GitHub Releases](https://github.com/polunzh/mailbox-cli/releases)。
 
+在本地发版可直接执行：
+
+```bash
+make release VERSION=v0.1.0
+```
+
 ## 使用
 
 ### TUI
