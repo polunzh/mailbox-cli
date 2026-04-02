@@ -116,7 +116,9 @@ var readCmd = &cobra.Command{
 		if jsonFlag {
 			return WriteReadJSON(os.Stdout, detail)
 		}
-		fmt.Fprintf(os.Stdout, "From: %s\nSubject: %s\n\n%s\n", detail.From, detail.Subject, detail.TextBody)
+		if _, err := fmt.Fprintf(os.Stdout, "From: %s\nSubject: %s\n\n%s\n", detail.From, detail.Subject, detail.TextBody); err != nil {
+			return fmt.Errorf("write message output: %w", err)
+		}
 		return nil
 	},
 }

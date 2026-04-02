@@ -26,12 +26,14 @@ var authLogoutCmd = &cobra.Command{
 		}
 
 		if err := credStore.Delete(acct.CredKey); err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: could not remove credential: %v\n", err)
+			_, _ = fmt.Fprintf(os.Stderr, "Warning: could not remove credential: %v\n", err)
 		}
 		if err := accountStore.Remove(acct.ID); err != nil {
 			return fmt.Errorf("remove account: %w", err)
 		}
-		fmt.Fprintf(os.Stdout, "Logged out %s\n", acct.Email)
+		if _, err := fmt.Fprintf(os.Stdout, "Logged out %s\n", acct.Email); err != nil {
+			return fmt.Errorf("write success output: %w", err)
+		}
 		return nil
 	},
 }

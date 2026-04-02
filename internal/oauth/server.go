@@ -30,7 +30,7 @@ func NewCallbackServer() (*CallbackServer, error) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
-		fmt.Fprintln(w, "Authentication complete. You may close this tab.")
+		_, _ = fmt.Fprintln(w, "Authentication complete. You may close this tab.")
 		srv.codeCh <- code
 	})
 
@@ -47,7 +47,9 @@ func (s *CallbackServer) Port() int {
 func (s *CallbackServer) WaitForCode(timeout time.Duration) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	defer s.listener.Close()
+	defer func() {
+		_ = s.listener.Close()
+	}()
 
 	select {
 	case code := <-s.codeCh:

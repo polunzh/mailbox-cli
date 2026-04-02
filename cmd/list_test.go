@@ -9,24 +9,6 @@ import (
 	"github.com/zhenqiang/mailbox-cli/internal/model"
 )
 
-// fakeProvider for list/read command tests.
-type fakeListProvider struct {
-	messages []model.Message
-	detail   *model.MessageDetail
-}
-
-func (f *fakeListProvider) Authenticate() (*cmd.ProviderAuthResult, error) { return nil, nil }
-func (f *fakeListProvider) ListMessages(opts model.ListOptions) ([]model.Message, error) {
-	return f.messages, nil
-}
-func (f *fakeListProvider) GetMessage(loc model.MessageLocator) (*model.MessageDetail, error) {
-	if f.detail != nil {
-		return f.detail, nil
-	}
-	return nil, cmd.ErrMessageNotFoundSentinel
-}
-func (f *fakeListProvider) SendMessage(d model.Draft) (*model.MessageLocator, error) { return nil, nil }
-
 func TestListJSONShape(t *testing.T) {
 	msgs := []model.Message{
 		{

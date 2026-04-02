@@ -97,7 +97,9 @@ var replyCmd = &cobra.Command{
 		if jsonFlag {
 			return WriteSendJSON(os.Stdout, loc, &origLoc)
 		}
-		fmt.Fprintf(os.Stdout, "Reply sent. Message ID: %s\n", loc.ID)
+		if _, err := fmt.Fprintf(os.Stdout, "Reply sent. Message ID: %s\n", loc.ID); err != nil {
+			return fmt.Errorf("write reply output: %w", err)
+		}
 		return nil
 	},
 }

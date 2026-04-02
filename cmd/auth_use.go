@@ -25,7 +25,9 @@ var authUseCmd = &cobra.Command{
 		if err := accountStore.SetDefault(acct.ID); err != nil {
 			return fmt.Errorf("set default: %w", err)
 		}
-		fmt.Fprintf(os.Stdout, "Default account set to %s\n", acct.ID)
+		if _, err := fmt.Fprintf(os.Stdout, "Default account set to %s\n", acct.ID); err != nil {
+			return fmt.Errorf("write success output: %w", err)
+		}
 		return nil
 	},
 }

@@ -37,8 +37,8 @@ type gmailMessage struct {
 		} `json:"body"`
 		MimeType string `json:"mimeType"`
 	} `json:"payload"`
-	LabelIDs       []string `json:"labelIds"`
-	InternalDate   string   `json:"internalDate"`
+	LabelIDs     []string `json:"labelIds"`
+	InternalDate string   `json:"internalDate"`
 }
 
 // buildGmailTestServer returns a test server responding with canned Gmail API responses.
@@ -52,7 +52,9 @@ func buildGmailTestServer(t *testing.T) *httptest.Server {
 		resp.Messages = append(resp.Messages, struct {
 			ID string `json:"id"`
 		}{ID: "msg1"})
-		json.NewEncoder(w).Encode(resp)
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	})
 
 	// messages.get
@@ -74,13 +76,15 @@ func buildGmailTestServer(t *testing.T) *httptest.Server {
 		}
 		// base64url-encoded "Hello Gmail body"
 		msg.Payload.Body.Data = "SGVsbG8gR21haWwgYm9keQ=="
-		json.NewEncoder(w).Encode(msg)
+		if err := json.NewEncoder(w).Encode(msg); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	})
 
 	// messages.send
 	mux.HandleFunc("/gmail/v1/users/me/messages/send", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"id":"sent1"}`)
+		_, _ = fmt.Fprintf(w, `{"id":"sent1"}`)
 	})
 
 	return httptest.NewServer(mux)

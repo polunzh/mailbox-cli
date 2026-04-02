@@ -42,9 +42,13 @@ var authLoginCmd = &cobra.Command{
 				return err
 			}
 			authURL := gmailAuthURL(oauthSrv.Port())
-			fmt.Fprintf(os.Stderr, "Opening browser for Gmail OAuth...\n%s\n", authURL)
+			if _, err := fmt.Fprintf(os.Stderr, "Opening browser for Gmail OAuth...\n%s\n", authURL); err != nil {
+				return fmt.Errorf("write auth prompt: %w", err)
+			}
 			if err := openBrowser(authURL); err != nil {
-				fmt.Fprintf(os.Stderr, "Could not open browser automatically. Please visit the URL above.\n")
+				if _, writeErr := fmt.Fprintln(os.Stderr, "Could not open browser automatically. Please visit the URL above."); writeErr != nil {
+					return fmt.Errorf("write browser fallback: %w", writeErr)
+				}
 			}
 			code, err := oauthSrv.WaitForCode(oauthTimeout)
 			if err != nil {
@@ -65,7 +69,9 @@ var authLoginCmd = &cobra.Command{
 			if loginEmail == "" {
 				return fmt.Errorf("--email is required for QQ provider")
 			}
-			fmt.Fprint(os.Stderr, "Enter QQ app password (授权码): ")
+			if _, err := fmt.Fprint(os.Stderr, "Enter QQ app password (授权码): "); err != nil {
+				return fmt.Errorf("write password prompt: %w", err)
+			}
 			password, err := readPassword()
 			if err != nil {
 				return fmt.Errorf("read password: %w", err)
@@ -102,7 +108,9 @@ var authLoginCmd = &cobra.Command{
 			_ = accountStore.SetDefault(acct.ID)
 		}
 
-		fmt.Fprintf(os.Stdout, "Logged in as %s (%s)\n", acct.Email, acct.Provider)
+		if _, err := fmt.Fprintf(os.Stdout, "Logged in as %s (%s)\n", acct.Email, acct.Provider); err != nil {
+			return fmt.Errorf("write success output: %w", err)
+		}
 		return nil
 	},
 }

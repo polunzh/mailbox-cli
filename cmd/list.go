@@ -92,7 +92,9 @@ var listCmd = &cobra.Command{
 			if m.Unread {
 				unread = "*"
 			}
-			fmt.Fprintf(os.Stdout, "%s [%s] %s — %s\n", unread, m.Locator.ID, m.From, m.Subject)
+			if _, err := fmt.Fprintf(os.Stdout, "%s [%s] %s — %s\n", unread, m.Locator.ID, m.From, m.Subject); err != nil {
+				return fmt.Errorf("write list output: %w", err)
+			}
 		}
 		return nil
 	},

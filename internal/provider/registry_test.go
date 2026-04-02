@@ -20,9 +20,11 @@ func (f *fakeProvider) Authenticate() (*provider.AuthResult, error)             
 
 func TestRegistryRegisterAndBuild(t *testing.T) {
 	r := provider.NewRegistry()
-	r.Register("fake", func(a model.Account, cred string) provider.MailProvider {
+	if err := r.Register("fake", func(a model.Account, cred string) provider.MailProvider {
 		return &fakeProvider{}
-	})
+	}); err != nil {
+		t.Fatal(err)
+	}
 	p, err := r.Build("fake", model.Account{}, "cred")
 	if err != nil {
 		t.Fatal(err)

@@ -35,9 +35,17 @@ func TestAddAndGet(t *testing.T) {
 func TestPersistence(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")
-	s, _ := account.NewStore(path)
-	s.Add(model.Account{ID: "gmail:a@b.com", Provider: "gmail", Email: "a@b.com"})
-	s2, _ := account.NewStore(path)
+	s, err := account.NewStore(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Add(model.Account{ID: "gmail:a@b.com", Provider: "gmail", Email: "a@b.com"}); err != nil {
+		t.Fatal(err)
+	}
+	s2, err := account.NewStore(path)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if _, err := s2.GetByID("gmail:a@b.com"); err != nil {
 		t.Fatal("not persisted")
 	}
@@ -45,8 +53,12 @@ func TestPersistence(t *testing.T) {
 
 func TestList(t *testing.T) {
 	s := newStore(t)
-	s.Add(model.Account{ID: "gmail:a@b.com", Provider: "gmail", Email: "a@b.com"})
-	s.Add(model.Account{ID: "qq:a@qq.com", Provider: "qq", Email: "a@qq.com"})
+	if err := s.Add(model.Account{ID: "gmail:a@b.com", Provider: "gmail", Email: "a@b.com"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Add(model.Account{ID: "qq:a@qq.com", Provider: "qq", Email: "a@qq.com"}); err != nil {
+		t.Fatal(err)
+	}
 	list, err := s.List()
 	if err != nil {
 		t.Fatal(err)
@@ -58,7 +70,9 @@ func TestList(t *testing.T) {
 
 func TestDefaultAccount(t *testing.T) {
 	s := newStore(t)
-	s.Add(model.Account{ID: "gmail:a@b.com", Provider: "gmail", Email: "a@b.com"})
+	if err := s.Add(model.Account{ID: "gmail:a@b.com", Provider: "gmail", Email: "a@b.com"}); err != nil {
+		t.Fatal(err)
+	}
 	if err := s.SetDefault("gmail:a@b.com"); err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +87,9 @@ func TestDefaultAccount(t *testing.T) {
 
 func TestResolveByEmail(t *testing.T) {
 	s := newStore(t)
-	s.Add(model.Account{ID: "gmail:a@b.com", Provider: "gmail", Email: "a@b.com"})
+	if err := s.Add(model.Account{ID: "gmail:a@b.com", Provider: "gmail", Email: "a@b.com"}); err != nil {
+		t.Fatal(err)
+	}
 	got, err := s.ResolveByEmail("a@b.com")
 	if err != nil {
 		t.Fatal(err)
@@ -85,8 +101,12 @@ func TestResolveByEmail(t *testing.T) {
 
 func TestAmbiguousEmail(t *testing.T) {
 	s := newStore(t)
-	s.Add(model.Account{ID: "gmail:a@b.com", Provider: "gmail", Email: "a@b.com"})
-	s.Add(model.Account{ID: "qq:a@b.com", Provider: "qq", Email: "a@b.com"})
+	if err := s.Add(model.Account{ID: "gmail:a@b.com", Provider: "gmail", Email: "a@b.com"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Add(model.Account{ID: "qq:a@b.com", Provider: "qq", Email: "a@b.com"}); err != nil {
+		t.Fatal(err)
+	}
 	_, err := s.ResolveByEmail("a@b.com")
 	if err != account.ErrAmbiguous {
 		t.Fatalf("expected ErrAmbiguous, got %v", err)
@@ -95,7 +115,9 @@ func TestAmbiguousEmail(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	s := newStore(t)
-	s.Add(model.Account{ID: "gmail:a@b.com", Provider: "gmail", Email: "a@b.com"})
+	if err := s.Add(model.Account{ID: "gmail:a@b.com", Provider: "gmail", Email: "a@b.com"}); err != nil {
+		t.Fatal(err)
+	}
 	if err := s.Remove("gmail:a@b.com"); err != nil {
 		t.Fatal(err)
 	}

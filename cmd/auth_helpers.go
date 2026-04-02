@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/zhenqiang/mailbox-cli/internal/oauth"
-	goterm "golang.org/x/term"
 	gooauth2 "golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	goterm "golang.org/x/term"
 )
 
 const oauthTimeout = 5 * time.Minute
@@ -77,7 +77,9 @@ func exchangeGmailCode(port int, code string) (email, token string, err error) {
 	if err != nil {
 		return "", "", fmt.Errorf("fetch userinfo: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	body, _ := io.ReadAll(resp.Body)
 	var info struct {
 		Email string `json:"email"`

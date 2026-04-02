@@ -16,7 +16,10 @@ func TestCallbackCapture(t *testing.T) {
 	}
 	go func() {
 		time.Sleep(50 * time.Millisecond)
-		http.Get(fmt.Sprintf("http://localhost:%d/callback?code=testcode", srv.Port()))
+		resp, err := http.Get(fmt.Sprintf("http://localhost:%d/callback?code=testcode", srv.Port()))
+		if err == nil {
+			_ = resp.Body.Close()
+		}
 	}()
 	code, err := srv.WaitForCode(5 * time.Second)
 	if err != nil {

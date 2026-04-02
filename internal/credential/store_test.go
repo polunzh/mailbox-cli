@@ -29,7 +29,9 @@ func TestSetAndGet(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	s := newFileStore(t)
-	s.Set("key1", "secret")
+	if err := s.Set("key1", "secret"); err != nil {
+		t.Fatal(err)
+	}
 	if err := s.Delete("key1"); err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +44,9 @@ func TestDelete(t *testing.T) {
 func TestReload(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "creds.json")
 	s1 := credential.NewFileStore(path)
-	s1.Set("k", "v")
+	if err := s1.Set("k", "v"); err != nil {
+		t.Fatal(err)
+	}
 	s2 := credential.NewFileStore(path)
 	val, err := s2.Get("k")
 	if err != nil {
@@ -56,7 +60,9 @@ func TestReload(t *testing.T) {
 func TestFilePermissions(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "creds.json")
 	s := credential.NewFileStore(path)
-	s.Set("k", "v")
+	if err := s.Set("k", "v"); err != nil {
+		t.Fatal(err)
+	}
 	info, err := os.Stat(path)
 	if err != nil {
 		t.Fatal(err)

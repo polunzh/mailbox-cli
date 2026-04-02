@@ -157,8 +157,12 @@ func openEditor() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("editor: create temp file: %w", err)
 	}
-	tmp.Close()
-	defer os.Remove(tmp.Name())
+	if err := tmp.Close(); err != nil {
+		return "", fmt.Errorf("editor: close temp file: %w", err)
+	}
+	defer func() {
+		_ = os.Remove(tmp.Name())
+	}()
 
 	if err := runEditor(editor, tmp.Name()); err != nil {
 		return "", fmt.Errorf("editor: %w", err)

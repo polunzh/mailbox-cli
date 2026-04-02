@@ -81,7 +81,9 @@ var sendCmd = &cobra.Command{
 		if jsonFlag {
 			return WriteSendJSON(os.Stdout, loc, nil)
 		}
-		fmt.Fprintf(os.Stdout, "Sent. Message ID: %s\n", loc.ID)
+		if _, err := fmt.Fprintf(os.Stdout, "Sent. Message ID: %s\n", loc.ID); err != nil {
+			return fmt.Errorf("write send output: %w", err)
+		}
 		return nil
 	},
 }

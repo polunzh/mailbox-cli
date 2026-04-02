@@ -120,7 +120,9 @@ func (p *GmailProvider) SendMessage(d model.Draft) (*model.MessageLocator, error
 	if err != nil {
 		return nil, fmt.Errorf("gmail: send: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("gmail: send %d: %s", resp.StatusCode, body)
@@ -229,7 +231,9 @@ func (p *GmailProvider) get(url string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("gmail: get %s: %w", url, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("gmail: %d from %s: %s", resp.StatusCode, url, body)
