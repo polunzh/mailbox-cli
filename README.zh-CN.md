@@ -33,6 +33,8 @@ cd mailbox-cli
 go build -o mailbox .
 ```
 
+带版本号的预编译压缩包会发布在 [GitHub Releases](https://github.com/polunzh/mailbox-cli/releases)。
+
 ## 使用
 
 ### TUI

@@ -33,6 +33,8 @@ cd mailbox-cli
 go build -o mailbox .
 ```
 
+Prebuilt archives for tagged versions are published on [GitHub Releases](https://github.com/polunzh/mailbox-cli/releases).
+
 ## Usage
 
 ### TUI

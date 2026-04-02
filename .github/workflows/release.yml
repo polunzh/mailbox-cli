@@ -1,0 +1,103 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build Release Assets
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            suffix: linux-amd64
+          - goos: linux
+            goarch: arm64
+            suffix: linux-arm64
+          - goos: darwin
+            goarch: amd64
+            suffix: darwin-amd64
+          - goos: darwin
+            goarch: arm64
+            suffix: darwin-arm64
+          - goos: freebsd
+            goarch: amd64
+            suffix: freebsd-amd64
+          - goos: openbsd
+            goarch: amd64
+            suffix: openbsd-amd64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      - name: Build archive
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+          VERSION: ${{ github.ref_name }}
+        run: |
+          mkdir -p dist/package
+          BINARY_NAME="mailbox"
+          ARCHIVE_NAME="mailbox_${VERSION#v}_${{ matrix.suffix }}"
+          go build -ldflags="-s -w -X main.version=${VERSION}" -o "dist/package/${BINARY_NAME}" .
+          cp README.md dist/package/
+          cp README.zh-CN.md dist/package/
+          tar -czf "dist/${ARCHIVE_NAME}.tar.gz" -C dist/package .
+          sha256sum "dist/${ARCHIVE_NAME}.tar.gz" > "dist/${ARCHIVE_NAME}.tar.gz.sha256"
+          rm -rf dist/package
+          ls -la dist
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.suffix }}
+          path: |
+            dist/*.tar.gz
+            dist/*.sha256
+          retention-days: 7
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: build-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: release-*
+          merge-multiple: true
+
+      - name: Generate checksums manifest
+        working-directory: dist
+        run: |
+          sha256sum *.tar.gz > SHA256SUMS.txt
+          ls -la
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --verify-tag --generate-notes
+          fi
