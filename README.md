@@ -2,6 +2,10 @@
 
 # mailbox-cli
 
+[![CI](https://github.com/polunzh/mailbox-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/polunzh/mailbox-cli/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/polunzh/mailbox-cli/branch/master/graph/badge.svg)](https://codecov.io/gh/polunzh/mailbox-cli)
+[![Go Report Card](https://goreportcard.com/badge/github.com/polunzh/mailbox-cli)](https://goreportcard.com/report/github.com/polunzh/mailbox-cli)
+
 A terminal email client for developers. Supports an interactive TUI for daily use and CLI subcommands for scripting and automation.
 
 ## Features
