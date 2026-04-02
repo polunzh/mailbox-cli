@@ -4,6 +4,8 @@
 
 面向开发者的终端邮件客户端。支持全屏 TUI 日常使用，也支持 CLI 子命令用于脚本和自动化。
 
+覆盖率报告可在 [Codecov](https://app.codecov.io/gh/polunzh/mailbox-cli) 查看。
+
 ## 功能
 
 - **现代化 TUI**：分栏布局（宽屏）或单栏（窄屏），Vim 风格快捷键
